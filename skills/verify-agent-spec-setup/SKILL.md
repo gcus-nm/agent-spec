@@ -28,6 +28,9 @@ python <THIS_SKILL_DIR>/scripts/verify_setup.py \
   --require-skills
 ```
 
+macOS・Linuxでは`python3`、Windowsでは`python`を優先し、利用可能なPython 3コマンドを
+使用する。
+
 汎用プロファイルでは`--expect-profile`を省略する。Skill導入を必須にしない環境では
 `--require-skills`を省略する。複数の導入先は`--installed-skills-dir`を繰り返す。
 
@@ -38,13 +41,31 @@ python <THIS_SKILL_DIR>/scripts/verify_setup.py \
 - Skill整合性: 必須Skillの存在、正本との内容差、古いコピー
 - 実行時検出: 新しいセッションでのAGENTS読込とSkill一覧
 
+Skill導入先がない、またはSkillが不足している場合は、repoルートの
+`scripts/install_skills.py`が出力する導入コマンドを提示する。macOS・Linuxの例は次のとおり。
+
+```text
+python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/install_skills.py \
+  --repo <AGENT_SPEC_REPOSITORY_PATH> \
+  --target "$HOME/.agents/skills" \
+  --mode symlink \
+  --apply
+```
+
+診断だけを依頼されている場合は実行せず、修正案として報告する。コピーが必要な環境では
+`--mode copy`へ変更する。
+
 ## 実行時検出を確認する
 
 1. 可能なら対象環境で新しいセッションまたは独立エージェントを開始する。
 2. 読み込んだAGENTSファイルのパスと、利用可能なSkill名だけを列挙させる。
-3. 期待するルートAGENTS、プロジェクトAGENTS、`maintain-agent-spec`、
+3. エージェントが報告したAGENTSパスが実在することをファイルシステムで確認する。存在しない
+   パスの自己申告は読込成功の根拠にせず、WARNまたは未確認とする。
+4. 期待するルートAGENTS、プロジェクトAGENTS、`maintain-agent-spec`、
    `verify-agent-spec-setup`が見えるか照合する。
-4. 新しいセッションを使えない場合は、ファイル検証と実行時検出を分け、後者を未確認と
+5. Skillを新たに導入した場合は、Codexを再起動するか新しいセッションを開始して一覧を
+   再確認する。
+6. 新しいセッションを使えない場合は、ファイル検証と実行時検出を分け、後者を未確認と
    報告する。継承済みコンテキストだけで自動読込成功と判定しない。
 
 ## 報告する

@@ -23,6 +23,9 @@
 ## 更新
 
 - 共通ルールをこのファイルへ複製せず、`agent-spec`側の正本を更新してください。
+- Skillはルート指示とは別に、
+  `<AGENT_SPEC_REPOSITORY_PATH>/docs/SKILL_MANAGEMENT.md`に従って導入してください。
+  このファイルからrepoを参照するだけで自動導入されたと判断しないでください。
 - `git pull`など外部状態を変更する操作は、権限と作業範囲を確認してから行ってください。
 
 <!-- コピー後、<AGENT_SPEC_REPOSITORY_PATH> を実際の絶対パスへ置換してください。 -->

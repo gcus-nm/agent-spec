@@ -19,3 +19,7 @@
 - 新環境のルートAGENTS、必須文書、導入済みSkill、実行時検出を診断する
   `verify-agent-spec-setup` Skillと読み取り専用スクリプトを追加しました。
 - Skillが反復して生成するコードを`scripts/`へ昇格する基準を追加しました。
+- ルートAGENTSによるrepo参照だけではSkillが自動導入されないことを明記し、全管理Skillを
+  dry-run付きでコピーまたはシンボリックリンクする`scripts/install_skills.py`を追加しました。
+- macOS・Linuxの`python3`利用、Skill導入後の再起動・再検証、実在しないAGENTSパスの
+  自己申告を読込成功とみなさない検証ルールを追加しました。
