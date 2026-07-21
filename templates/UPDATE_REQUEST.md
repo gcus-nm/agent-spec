@@ -6,7 +6,7 @@
 
 ## Scope
 
-- 対象: `<core / use-case / profile / adapter / template / docs / memory>`
+- 対象: `<core / use-case / profile / adapter / template / skill / docs / memory>`
 - 対象利用者・製品・ディレクトリ: `<適用範囲>`
 - 対象外: `<変更してはいけないもの>`
 
@@ -27,4 +27,5 @@
 - `docs/MAINTENANCE.md` の分類・同期・検証規則を満たす。
 - 必要な公式資料と確認日が記録されている。
 - 全MarkdownとSerenaメモリ参照の検証が成功する。
+- Skill変更時は `docs/SKILL_MANAGEMENT.md` に従い、`python scripts/validate_repository.py`が成功する。
 - 変更内容、検証、残課題、Git操作結果が報告される。

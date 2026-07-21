@@ -14,7 +14,8 @@
 3. `instructions/core/task-lifecycle.md`
 4. `instructions/core/instruction-authoring.md`
 5. 本文書
-6. 更新対象に関連するプロファイル、アダプター、公式資料、Serenaメモリ
+6. Skill変更の場合は `docs/SKILL_MANAGEMENT.md` と対象の `SKILL.md`
+7. 更新対象に関連するプロファイル、アダプター、公式資料、Serenaメモリ
 
 ### Gitと作業ツリー
 
@@ -36,6 +37,8 @@
 | 個人の言語、通知、ツール、コード嗜好 | `profiles/<name>/` |
 | Codex、Copilot、Geminiなど製品固有の差分 | `adapters/` |
 | コピーして具体化する雛形 | `templates/` |
+| 反復する実行手順、参照資料、任意スクリプト | `skills/<skill-name>/` |
+| Skill横断の作成・導入・検証・配布ルール | `docs/SKILL_MANAGEMENT.md` |
 | 構成と読込順 | `docs/INSTRUCTION_ARCHITECTURE.md` |
 | 外部公式資料と採用判断 | `docs/OFFICIAL_GUIDANCE.md` |
 | 取り込み元と除外理由 | `docs/SOURCE_INVENTORY.md` |
@@ -90,6 +93,15 @@
 - 対応するテンプレートや設定例
 - ベンダー固有機能を汎用ルールの前提にしていないこと
 
+### Skillを変更した場合
+
+- `skills/README.md` のカタログ
+- `docs/SKILL_MANAGEMENT.md` の構造・導入・検証ルール
+- `agents/openai.yaml` と `SKILL.md` の名称・説明・既定プロンプト
+- 関連する `README.md`、アダプター、テンプレート、Serenaメモリ
+- `python scripts/validate_skills.py` と追加したSkill内スクリプトの実行結果
+- 導入先コピーやPluginを直接編集せず、repo内の正本から同期すること
+
 ### ファイル移動・改名をした場合
 
 - ルートAGENTS、README、テンプレート、アダプター、文書内の全参照
@@ -122,6 +134,8 @@
 - テンプレートのプレースホルダーは意図した箇所だけに残っている。
 - 個人設定、汎用コア、製品固有設定の境界が保たれている。
 - Serenaの全 `mem:` 参照先が存在する。
+- Skill変更時は `python scripts/validate_skills.py` が成功する。
+- `python scripts/validate_repository.py` が成功する。
 - `git status --short --untracked-files=all` で意図したファイルだけが変更されている。
 - 追跡済み差分には `git diff --check` を実行する。
 
@@ -145,3 +159,4 @@
 - 個人情報、秘密情報、端末固有情報が混入していない。
 - ローカル検証が成功し、実行できなかった確認が明示されている。
 - 別環境のエージェントが本文書だけで安全に同じ更新手順を再現できる。
+- Skill変更時は、正本、導入範囲、同期方法、起動確認方法が明示されている。

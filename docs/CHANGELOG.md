@@ -9,3 +9,13 @@
 - OpenAI Codex、AGENTS.mdオープン形式、GitHub Copilot、Gemini CLIの公式資料を整理しました。
 - 他環境から安全に更新するための保守ルールと更新依頼テンプレートを追加しました。
 - 端末のユーザー名に依存していたプロファイル名を `profiles/personal/` へ変更しました。
+- Skillの正本、作成・導入・同期・配布ルール、作成依頼テンプレートを追加しました。
+- このリポジトリを保守する`maintain-agent-spec` Skillを追加しました。
+- Skill構造と`agents/openai.yaml`を検証する`python scripts/validate_skills.py`を追加しました。
+- OpenAIのBuild skills、OpenAI Skills、Agent Skills specification、Plugin配布方針を
+  公式資料一覧へ追加しました。
+- `maintain-agent-spec`を仕様文書更新専用として明確化し、定型repo検証を
+  `scripts/validate_repository.py`へ切り出しました。
+- 新環境のルートAGENTS、必須文書、導入済みSkill、実行時検出を診断する
+  `verify-agent-spec-setup` Skillと読み取り専用スクリプトを追加しました。
+- Skillが反復して生成するコードを`scripts/`へ昇格する基準を追加しました。
