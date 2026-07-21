@@ -83,6 +83,26 @@ skills/
 コピーは単純ですが、更新時に再同期が必要です。シンボリックリンクは正本の更新を即時反映
 できますが、権限・OS・クローン先パスに依存します。各環境の制約に合わせて選びます。
 
+### 初回セットアップをまとめて実行する
+
+ルートAGENTSの生成、repoパス置換、全Skillの導入、セットアップ検証をまとめる場合は、
+まずdry-runを確認してから`--apply`を付けます。
+
+```text
+python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH>
+python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --apply
+```
+
+Windowsでは`python`で実行します。汎用プロファイルは`--profile generic`を追加します。
+Skill配置方式はmacOS・Linuxでシンボリックリンク、Windowsでコピーを自動選択します。
+必要なら`--skill-mode symlink`または`--skill-mode copy`で明示します。
+
+スクリプトは既存ルートAGENTSを自動上書きしません。必要な参照と実際のrepoパスを持つ既存
+ファイルは保持し、互換性がない場合はFAILとして手動統合を案内します。既定はdry-runで、
+変更は`--apply`を指定した場合だけ行います。
+
+### Skillだけを導入・再同期する
+
 全Skillをユーザー共通の導入先へ安全に配置するには、まずdry-runで計画を確認してから
 `--apply`を付けます。macOS・LinuxではPython 3を`python3`で起動します。
 

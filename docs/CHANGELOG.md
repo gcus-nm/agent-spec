@@ -23,3 +23,6 @@
   dry-run付きでコピーまたはシンボリックリンクする`scripts/install_skills.py`を追加しました。
 - macOS・Linuxの`python3`利用、Skill導入後の再起動・再検証、実在しないAGENTSパスの
   自己申告を読込成功とみなさない検証ルールを追加しました。
+- 新環境でルートAGENTS生成、repoパス置換、Skill導入、セットアップ検証をまとめて行う
+  dry-run付きの`scripts/setup_environment.py`を追加しました。
+- 既存ルートAGENTSは自動上書きせず、互換性がない場合に手動統合を案内するようにしました。

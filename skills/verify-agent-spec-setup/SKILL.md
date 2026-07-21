@@ -31,6 +31,21 @@ python <THIS_SKILL_DIR>/scripts/verify_setup.py \
 macOS・Linuxでは`python3`、Windowsでは`python`を優先し、利用可能なPython 3コマンドを
 使用する。
 
+初回セットアップの実施まで依頼され、変更の許可がある場合は、repoルートの
+`scripts/setup_environment.py`をdry-run後に`--apply`付きで実行する。このスクリプトは
+ルートAGENTS生成、Skill導入、本節の検証をまとめて行う。診断だけの依頼では実行しない。
+
+```text
+python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/setup_environment.py \
+  --repo <AGENT_SPEC_REPOSITORY_PATH>
+python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/setup_environment.py \
+  --repo <AGENT_SPEC_REPOSITORY_PATH> \
+  --apply
+```
+
+既存ルートAGENTSとの競合でFAILになった場合は上書きせず、対象ファイルへテンプレートの参照を
+手動統合する。
+
 汎用プロファイルでは`--expect-profile`を省略する。Skill導入を必須にしない環境では
 `--require-skills`を省略する。複数の導入先は`--installed-skills-dir`を繰り返す。
 
