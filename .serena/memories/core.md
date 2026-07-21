@@ -1,0 +1,11 @@
+# Core
+
+- ルート `AGENTS.md` はこのリポジトリ自身の短いルーター。全利用者向け原則は `instructions/core/`。
+- このリポジトリを更新するときの正本手順は `docs/MAINTENANCE.md`。別環境からの更新も同じ手順を適用。
+- タスク別手順は `instructions/use-cases/`、個人設定は `profiles/<name>/`、製品固有の読込差分は `adapters/`、コピー用ひな形は `templates/`。
+- 既定の個人プロファイル入口は `profiles/personal/AGENTS.md`。端末ユーザー名や他利用者へ自動的に紐づけない。
+- 導入と構造は `README.md` と `docs/INSTRUCTION_ARCHITECTURE.md`。
+- 公式根拠と確認日は `docs/OFFICIAL_GUIDANCE.md`、取り込み元は `docs/SOURCE_INVENTORY.md`、変更履歴は `docs/CHANGELOG.md`。
+- 編集規約は `mem:conventions`、技術構成は `mem:tech_stack`、運用コマンドは `mem:suggested_commands`、完了条件は `mem:task_completion`。
+- Serenaメモリの構造・更新基準は `mem:memory_maintenance`。
+- 共通規約、個人設定、プロジェクト固有情報を混在させず、秘密情報を保存しない。
