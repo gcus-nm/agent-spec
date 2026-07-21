@@ -1,0 +1,4 @@
+interface:
+  display_name: "agent-spec導入を検証"
+  short_description: "ルート指示・必須文書・導入済みSkillの整合性を読み取り専用で診断する"
+  default_prompt: "$verify-agent-spec-setup を使って、この環境のagent-spec導入状態を確認してください。"

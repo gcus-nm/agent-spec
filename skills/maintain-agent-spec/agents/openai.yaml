@@ -1,0 +1,4 @@
+interface:
+  display_name: "agent-spec文書を更新"
+  short_description: "agent-specの指示・Skill・テンプレートを分類・更新・検証する"
+  default_prompt: "$maintain-agent-spec を使って、agent-specの共通指示やSkillを安全に更新してください。"

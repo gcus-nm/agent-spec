@@ -13,11 +13,25 @@
 ## 汎用コアへ取り込んだ情報
 
 - OpenAI Codex公式マニュアルのBest practices、AGENTS discovery、Customization
+- OpenAI Codex公式マニュアルのBuild skills、Skill検出範囲、progressive disclosure、Plugin配布
+- OpenAI同梱`skill-creator`の構成、frontmatter、UIメタデータ、検証、forward test方針
+- OpenAI Skills repositoryとAgent Skills specificationの形式・実例
 - AGENTS.mdオープン形式の構成・階層化
 - GitHub CopilotとGemini CLIのスコープ分離・モジュール化の考え方
 - 安全な実装、調査、レビューに共通するタスクライフサイクル
 
 出典URLと採用判断は `docs/OFFICIAL_GUIDANCE.md` に集約しています。
+
+## Skillへ取り込んだ情報
+
+- このリポジトリの既存保守手順を`skills/maintain-agent-spec/`へワークフロー化しました。
+- ルートAGENTS、repo必須文書、導入済みSkill、実行時検出の確認手順を
+  `skills/verify-agent-spec-setup/`へワークフロー化しました。
+- セッション内で繰り返していたrepo検証を`scripts/validate_repository.py`へ切り出しました。
+- Skill本体へ時系列履歴や導入説明を複製せず、`docs/SKILL_MANAGEMENT.md`と
+  `skills/README.md`を横断的な正本にしました。
+- 外部Skillを将来取り込む場合は、出典、ライセンス、ローカル変更、更新方法を本書へ
+  追記します。
 
 ## Serena
 

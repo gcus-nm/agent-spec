@@ -9,3 +9,7 @@
 - Serena参照確認: `serena memories check`。CLIがなければSerena MCPの一覧と `mem:` 参照を照合。
 - 個人用ルート配置: `ROOT_AGENTS_TEMPLATE.md`、汎用配置: `templates/ROOT_AGENTS_GENERIC.md` をコピーし、リポジトリパスを置換。
 - 他環境への更新依頼: `templates/UPDATE_REQUEST.md` を具体化し、`docs/MAINTENANCE.md` を必須参照にする。
+- Skill検証: リポジトリルートで `python scripts/validate_skills.py`。
+- repo全体検証: リポジトリルートで `python scripts/validate_repository.py`。
+- セットアップ検証: `python skills/verify-agent-spec-setup/scripts/verify_setup.py --repo <repo> --root-agents <AGENTS.md> --installed-skills-dir <skills-dir>`。
+- Skill作成依頼: `templates/SKILL_REQUEST.md` で起動例、入出力、リソース、導入範囲を具体化する。

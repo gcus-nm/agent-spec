@@ -16,6 +16,18 @@
 - [Codex customization](https://learn.chatgpt.com/docs/customization/overview)
   - AGENTSは永続的な挙動、メモリは蓄積文脈、Skillは反復手順、MCPは外部接続に使い分ける。
   - 繰り返す誤りやレビュー指摘を指示へ反映し、自動検査と組み合わせる。
+- [Build skills](https://learn.chatgpt.com/docs/build-skills)
+  - Skillは必須の`SKILL.md`と、任意の`scripts/`、`references/`、`assets/`、
+    `agents/openai.yaml`から構成する。
+  - Codexは`name`と`description`を先に読み、明示起動または依頼との一致時に本文を読む。
+  - repo向けは`.agents/skills`、ユーザー向けは`$HOME/.agents/skills`で検出される。
+  - 同名Skillは統合されないため、導入先の重複を避ける。
+- [OpenAI Skills repository](https://github.com/openai/skills)
+  - 公式・curated Skillの構成例と、Skill作成・導入の参照先として利用する。
+- [Agent Skills specification](https://agentskills.io/specification)
+  - ベンダーをまたぐSkill形式の確認先として利用する。
+- [Build plugins](https://learn.chatgpt.com/docs/build-plugins)
+  - 複数SkillやMCP、コネクター、フックをまとめて配布する場合にPluginを選ぶ。
 - [Prompting Codex](https://learn.chatgpt.com/docs/prompting)
 - [Codex execution plans](https://developers.openai.com/cookbook/articles/codex_exec_plans)
 
@@ -44,3 +56,5 @@
 - 外部資料が変わっても作業不能にならないよう、重要な要点はローカル文書にも保持します。
 - 例示された規則をそのまま普遍化せず、実際のプロジェクトで反復して必要になったものだけを
   永続指示へ追加します。
+- Skillの正本は`skills/`に置き、Codexの検出場所へコピーまたはシンボリックリンクします。
+  Skill横断の運用は`docs/SKILL_MANAGEMENT.md`へ分離します。
