@@ -13,7 +13,7 @@ profiles/personal/               個人向け指示の既定プロファイル
 adapters/                        Codex、Copilot、Gemini CLI向け導入差分
 templates/                       環境ルート・プロジェクト・タスク用ひな形
 skills/                          複数環境で再利用するSkillの正本
-scripts/                         Skillなどの機械的な検証
+scripts/                         環境セットアップ、Skill導入、機械的な検証
 docs/                            設計、公式資料、取り込み元、変更履歴
 .serena/memories/                Serena向けの索引と長期メモリ
 ```
@@ -25,14 +25,23 @@ docs/                            設計、公式資料、取り込み元、変�
 ### 個人設定を含めて使う
 
 1. このリポジトリを各環境から読める場所へクローンします。
-2. `ROOT_AGENTS_TEMPLATE.md` をCodexホームなどのルート `AGENTS.md` へコピーします。
-3. `<AGENT_SPEC_REPOSITORY_PATH>` をこのリポジトリの絶対パスへ置換します。
-4. 新しいセッションで、読込済み指示の要約をエージェントに確認します。
+2. リポジトリルートでセットアップのdry-runを確認します。
+3. 同じコマンドへ`--apply`を付け、ルートAGENTS生成、Skill導入、検証を実行します。
+4. Codexを再起動し、読込済みAGENTSの実在パスとSkill一覧を確認します。
+
+macOS・Linuxでは次を実行します。
+
+```text
+python3 scripts/setup_environment.py --repo "$PWD"
+python3 scripts/setup_environment.py --repo "$PWD" --apply
+```
+
+Windowsでは`python`で実行します。既存のルートAGENTSが必要な参照を満たさない場合は、
+自動上書きせず停止します。テンプレートを既存ファイルへ手動統合して再実行してください。
 
 ### 汎用ルールだけを使う
 
-`templates/ROOT_AGENTS_GENERIC.md` をコピーし、同様にリポジトリパスを置換します。
-個人プロファイルは読み込まれません。
+セットアップコマンドへ`--profile generic`を付けます。個人プロファイルは読み込まれません。
 
 ### プロジェクトへ導入する
 
@@ -47,7 +56,25 @@ docs/                            設計、公式資料、取り込み元、変�
 管理中のSkillは`skills/README.md`から選びます。ユーザー全体で使う場合は
 `$HOME/.agents/skills/<skill-name>`、特定repoで使う場合は
 `<TARGET_REPOSITORY>/.agents/skills/<skill-name>`へ、Skillディレクトリ単位でコピーまたは
-シンボリックリンクします。
+シンボリックリンクします。ルート`AGENTS.md`からこのrepoを参照するだけではSkillは
+自動導入されません。
+
+全Skillをユーザー共通で使う場合は、dry-runを確認してから導入します。macOS・Linuxでは
+`python3`とシンボリックリンク、Windowsでは`python`とコピー方式を既定にします。
+
+通常の初回セットアップでは前述の`scripts/setup_environment.py`を使います。Skillだけを
+個別に再同期する場合は次を使います。
+
+```text
+python3 scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode symlink
+python3 scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode symlink --apply
+```
+
+Windowsでは上記の`python3`を`python`、`--mode symlink`を`--mode copy`へ置き換えます。
+
+導入後はCodexを再起動するか新しいセッションを開始し、
+`$verify-agent-spec-setup`で再検証します。詳細とコピー方式は`docs/SKILL_MANAGEMENT.md`を
+参照してください。
 
 Skillの作成・更新・検証・配布ルールは`docs/SKILL_MANAGEMENT.md`が正本です。新しいSkillの
 依頼は`templates/SKILL_REQUEST.md`で起動例と入出力を定義し、変更後は

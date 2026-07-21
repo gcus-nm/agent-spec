@@ -65,6 +65,16 @@ def directory_digest(path: Path) -> str:
     return digest.hexdigest()
 
 
+def install_command(repo: Path, installed_root: Path) -> str:
+    interpreter = "python" if os.name == "nt" else "python3"
+    mode = "copy" if os.name == "nt" else "symlink"
+    script = repo / "scripts" / "install_skills.py"
+    return (
+        f'{interpreter} "{script}" --repo "{repo}" '
+        f'--target "{installed_root}" --mode {mode} --apply'
+    )
+
+
 def repository_check(repo: Path) -> Finding:
     validator = repo / "scripts" / "validate_repository.py"
     if not validator.is_file():
@@ -142,7 +152,13 @@ def check_installed_skills(
         installed_root = installed_root.expanduser().resolve()
         if not installed_root.is_dir():
             findings.append(
-                Finding(missing_status, "skills-root-missing", str(installed_root), "Skill導入先がありません")
+                Finding(
+                    missing_status,
+                    "skills-root-missing",
+                    str(installed_root),
+                    f"Skill導入先がありません。明示的な導入が必要です: "
+                    f"{install_command(repo, installed_root)}",
+                )
             )
             continue
         for name in expected_skills:
@@ -153,7 +169,12 @@ def check_installed_skills(
                 continue
             if not destination.is_dir():
                 findings.append(
-                    Finding(missing_status, "installed-skill-missing", str(destination), "導入されていません")
+                    Finding(
+                        missing_status,
+                        "installed-skill-missing",
+                        str(destination),
+                        f"導入されていません: {install_command(repo, installed_root)}",
+                    )
                 )
                 continue
             if source.resolve() == destination.resolve():
@@ -172,7 +193,13 @@ def check_installed_skills(
                 )
             else:
                 findings.append(
-                    Finding(missing_status, "installed-skill-stale", str(destination), "正本と内容が異なります")
+                    Finding(
+                        missing_status,
+                        "installed-skill-stale",
+                        str(destination),
+                        "正本と内容が異なります。自動上書きせず差分を確認してから再導入してください: "
+                        f"{install_command(repo, installed_root)}",
+                    )
                 )
     return findings
 

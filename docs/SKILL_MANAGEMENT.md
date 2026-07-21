@@ -71,7 +71,8 @@ skills/
 ## 4. Codexへ導入する
 
 このrepoの`skills/`は管理上の正本であり、別repoから自動探索される場所ではありません。
-使用先へSkillディレクトリ単位でコピーするか、正本へのシンボリックリンクを作ります。
+ルート`AGENTS.md`からこのrepoを参照しても、Skillは自動導入されません。使用先へSkill
+ディレクトリ単位でコピーするか、正本へのシンボリックリンクを明示的に作ります。
 
 | 適用範囲 | 導入先 |
 |---|---|
@@ -82,9 +83,50 @@ skills/
 コピーは単純ですが、更新時に再同期が必要です。シンボリックリンクは正本の更新を即時反映
 できますが、権限・OS・クローン先パスに依存します。各環境の制約に合わせて選びます。
 
+### 初回セットアップをまとめて実行する
+
+ルートAGENTSの生成、repoパス置換、全Skillの導入、セットアップ検証をまとめる場合は、
+まずdry-runを確認してから`--apply`を付けます。
+
+```text
+python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH>
+python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --apply
+```
+
+Windowsでは`python`で実行します。汎用プロファイルは`--profile generic`を追加します。
+Skill配置方式はmacOS・Linuxでシンボリックリンク、Windowsでコピーを自動選択します。
+必要なら`--skill-mode symlink`または`--skill-mode copy`で明示します。
+
+スクリプトは既存ルートAGENTSを自動上書きしません。必要な参照と実際のrepoパスを持つ既存
+ファイルは保持し、互換性がない場合はFAILとして手動統合を案内します。既定はdry-runで、
+変更は`--apply`を指定した場合だけ行います。
+
+### Skillだけを導入・再同期する
+
+全Skillをユーザー共通の導入先へ安全に配置するには、まずdry-runで計画を確認してから
+`--apply`を付けます。macOS・LinuxではPython 3を`python3`で起動します。
+
+```text
+python3 scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode symlink
+python3 scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode symlink --apply
+```
+
+Windowsでは、権限設定に左右されにくいコピー方式を既定例にします。
+
+```text
+python scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode copy
+python scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode copy --apply
+```
+
+Windowsで開発者モードなどによりリンク作成権限がある場合は`--mode symlink`も選べます。
+シンボリックリンクを作れない環境では`--mode copy`を使用します。スクリプトは既存の異なる
+コピーやリンクを上書きしません。FAILになった対象は差分とリンク先を確認し、手動で整理して
+から再実行します。
+
 CodexはSkill変更を通常自動検出します。表示されない場合は新しいセッションまたはCodexの
-再起動後に、`$<skill-name>`またはSkill一覧で確認します。同名Skillは統合されず複数表示
-され得るため、導入先に古いコピーを残しません。
+再起動後に、`$<skill-name>`またはSkill一覧で確認します。その後、
+`verify-agent-spec-setup`の検証スクリプトを`--require-skills`付きで実行します。同名Skillは
+統合されず複数表示され得るため、導入先に古いコピーを残しません。
 
 複数Skillを組織へ配布する場合や、MCP・コネクター・フックとまとめる場合はPlugin化を
 別変更として検討します。
@@ -96,6 +138,8 @@ CodexはSkill変更を通常自動検出します。表示されない場合は�
 ```text
 python scripts/validate_repository.py
 ```
+
+macOS・Linuxで`python`が存在しない場合は、以降の検証コマンドも`python3`で実行します。
 
 この検証はUTF-8、Markdownリンク、Serena参照、端末固有パス、空白、競合マーカー、
 `git diff --check`に加え、`scripts/validate_skills.py`を呼び出します。Skill検証は、Skill名、

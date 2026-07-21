@@ -16,7 +16,10 @@
 導入後は新しいセッションで「現在読み込まれている指示元と優先順を要約して」と依頼し、
 想定したファイルが有効か確認します。
 
-このリポジトリで管理するSkillの導入・同期は`docs/SKILL_MANAGEMENT.md`に従います。
+このリポジトリの`skills/`やルートAGENTSからの参照だけではSkillは自動導入されません。
+Codexが探索する`.agents/skills`への明示的な導入・同期は`docs/SKILL_MANAGEMENT.md`に
+従います。新環境では`scripts/setup_environment.py`をdry-run後に適用すると、ルートAGENTS
+生成、Skill導入、検証をまとめて実行できます。
 
 公式: [Custom instructions with AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 

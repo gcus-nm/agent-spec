@@ -17,6 +17,8 @@ REQUIRED_PATHS = (
     "docs/SKILL_MANAGEMENT.md",
     "instructions/core/principles.md",
     "instructions/core/task-lifecycle.md",
+    "scripts/install_skills.py",
+    "scripts/setup_environment.py",
     "scripts/validate_skills.py",
     "skills/README.md",
 )

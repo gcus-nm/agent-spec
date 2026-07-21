@@ -11,5 +11,10 @@
 - 他環境への更新依頼: `templates/UPDATE_REQUEST.md` を具体化し、`docs/MAINTENANCE.md` を必須参照にする。
 - Skill検証: リポジトリルートで `python scripts/validate_skills.py`。
 - repo全体検証: リポジトリルートで `python scripts/validate_repository.py`。
+- 新環境セットアップdry-run: `python scripts/setup_environment.py --repo <repo>`。
+- 新環境セットアップ: 上記へ`--apply`を追加する。汎用設定は`--profile generic`も追加する。
+- Skill導入dry-run: `python scripts/install_skills.py --repo <repo> --target <skills-dir> --mode symlink`。
+- Skill導入: 上記へ `--apply` を追加する。リンク不可なら `--mode copy` を使う。
 - セットアップ検証: `python skills/verify-agent-spec-setup/scripts/verify_setup.py --repo <repo> --root-agents <AGENTS.md> --installed-skills-dir <skills-dir>`。
 - Skill作成依頼: `templates/SKILL_REQUEST.md` で起動例、入出力、リソース、導入範囲を具体化する。
+- macOS・Linuxで`python`がない場合はPython 3の各コマンドを`python3`へ置き換える。

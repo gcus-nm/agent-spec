@@ -7,6 +7,8 @@
 5. プレースホルダーがテンプレート上の意図した箇所だけに残ることを確認。
 6. `mem:` 参照先が一覧に存在することをSerena CLIまたはMCPで確認。
 7. Skill変更時は `python scripts/validate_skills.py` と追加したSkill内スクリプトを実行。
-8. `python scripts/validate_repository.py` を実行。
-9. `git status --short --untracked-files=all` で意図したファイルだけが変更されたことを確認し、commit・push・PRの実施有無を報告。
-10. VOICEVOXを `speaker=29`、`speedScale=1.1` で試行し、失敗時はテキストで報告。
+8. Skill導入処理の変更時は`scripts/install_skills.py`のdry-run、適用、再実行、既存差分拒否を一時ディレクトリで確認。
+9. 初回セットアップ処理の変更時は`scripts/setup_environment.py`のdry-run、適用、再実行、既存ルートAGENTS保持を一時ディレクトリで確認。
+10. `python scripts/validate_repository.py` を実行。
+11. `git status --short --untracked-files=all` で意図したファイルだけが変更されたことを確認し、commit・push・PRの実施有無を報告。
+12. VOICEVOXを `speaker=29`、`speedScale=1.1` で試行し、失敗時はテキストで報告。
