@@ -8,6 +8,7 @@
   - uLoopMCP、Serena、Playwright、Context7、GitHub、File Systemの利用方針
   - VOICEVOXの話者、速度、通知タイミング
   - UnityのnullチェックとC# 10規約
+  - 新規Webサービスを、明示指定がない限りDockerコンテナとして作成する方針
 - 保存先: `profiles/personal/`
 
 ## 汎用コアへ取り込んだ情報
