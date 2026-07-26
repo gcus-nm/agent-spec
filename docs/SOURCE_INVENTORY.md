@@ -23,6 +23,14 @@
 
 出典URLと採用判断は `docs/OFFICIAL_GUIDANCE.md` に集約しています。
 
+## ベンダー別アダプターへ取り込んだ情報
+
+- GitHub CLI公式マニュアルの、システム資格情報ストアへのトークン保存と認証用環境変数の
+  優先順位
+- CodexサンドボックスからmacOS Keychainへアクセスできない場合に、`gh auth status`の
+  失敗を認証切れと即断せず、サンドボックス外の読み取り専用チェックで切り分ける運用
+- 保存先: `adapters/codex.md`
+
 ## Skillへ取り込んだ情報
 
 - このリポジトリの既存保守手順を`skills/maintain-agent-spec/`へワークフロー化しました。
