@@ -7,6 +7,7 @@
 
 - 常時: `instructions/core/principles.md`
 - 変更を伴うタスク: `instructions/core/task-lifecycle.md`
+- タスク種別ごとの手順: `instructions/use-cases/README.md`から該当文書を選択
 - このリポジトリを更新するタスク: `docs/MAINTENANCE.md`
 - 指示ファイルの設計・編集: `instructions/core/instruction-authoring.md`
 - Skillの追加・変更・導入: `docs/SKILL_MANAGEMENT.md` と対象の `SKILL.md`
@@ -21,7 +22,8 @@
 - 全利用者に適用できる規則は `instructions/core/` に置きます。
 - 特定の作業だけに適用する手順は `instructions/use-cases/` に置きます。
 - 個人の言語、通知、ツール、コーディング嗜好は `profiles/<name>/` に置きます。
-- ベンダー固有の自動読込形式は `adapters/`、導入用のコピー元は `templates/` に置きます。
+- ベンダー固有の導入・設定・挙動・診断差分は `adapters/`、導入用のコピー元は
+  `templates/` に置きます。
 - 再利用する実行手順は `skills/<skill-name>/` に置き、Skill横断の運用は
   `docs/SKILL_MANAGEMENT.md` を正本にします。
 - 重要ルールは外部URLだけに依存させず、リポジトリ内へ簡潔に記録します。URLは根拠・

@@ -9,7 +9,8 @@
   2. `<AGENT_SPEC_REPOSITORY_PATH>/instructions/core/task-lifecycle.md`
   3. `<AGENT_SPEC_REPOSITORY_PATH>/profiles/personal/AGENTS.md`
   4. 作業対象プロジェクトのルートから現在地までにある `AGENTS.md`
-  5. タスクに該当する `instructions/use-cases/` の文書
+  5. `<AGENT_SPEC_REPOSITORY_PATH>/instructions/use-cases/README.md`で選んだ
+     タスク該当文書
 - `agent-spec`リポジトリ自体を更新する場合は、編集前に
   `<AGENT_SPEC_REPOSITORY_PATH>/docs/MAINTENANCE.md` も読んでください。
 

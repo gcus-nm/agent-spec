@@ -2,8 +2,8 @@
 
 - ルート `AGENTS.md` はこのリポジトリ自身の短いルーター。全利用者向け原則は `instructions/core/`。
 - このリポジトリを更新するときの正本手順は `docs/MAINTENANCE.md`。別環境からの更新も同じ手順を適用。
-- タスク別手順は `instructions/use-cases/`、個人設定は `profiles/<name>/`、製品固有の読込差分は `adapters/`、コピー用ひな形は `templates/`、再利用Skillの正本は `skills/`。
-- 実行環境固有の認証・権限・サンドボックス・検出問題は、常時読むタスクライフサイクルから該当`adapters/`文書へルーティングする。
+- タスク別手順は `instructions/use-cases/README.md`を索引として選ぶ。個人設定は `profiles/<name>/`、製品固有の読込差分は `adapters/`、コピー用ひな形は `templates/`、再利用Skillの正本は `skills/`。
+- 製品固有の導入・設定・挙動確認と、実行環境固有の認証・権限・サンドボックス・検出問題は、常時読むタスクライフサイクルから該当`adapters/`文書へルーティングする。
 - Skill横断の作成・導入・検証・配布ルールは `docs/SKILL_MANAGEMENT.md`。管理Skill索引は `skills/README.md`。
 - ルートAGENTSによるrepo参照とSkill導入は別工程。Skillは`scripts/install_skills.py`でCodexの探索先へ明示的に同期する。
 - 新環境の初回導入は`scripts/setup_environment.py`でルートAGENTS生成、Skill導入、検証を一括実行できる。

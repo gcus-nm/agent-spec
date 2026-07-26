@@ -13,7 +13,9 @@ from pathlib import Path
 ROOT_AGENT_REFERENCES = (
     "instructions/core/principles.md",
     "instructions/core/task-lifecycle.md",
+    "instructions/use-cases/README.md",
     "docs/MAINTENANCE.md",
+    "docs/SKILL_MANAGEMENT.md",
 )
 
 

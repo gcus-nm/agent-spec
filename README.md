@@ -8,7 +8,7 @@ AIコーディングエージェント向けの指示とSkillを、汎用ルー�
 ```text
 AGENTS.md                         このリポジトリ自身の短いルーター
 instructions/core/               全環境で再利用できる原則と設計規約
-instructions/use-cases/          実装、調査、レビューなど作業別の手順
+instructions/use-cases/          作業別手順と、依頼種別から選ぶための索引
 profiles/personal/               個人向け指示の既定プロファイル
 adapters/                        Codex、Copilot、Gemini CLI向け導入差分
 templates/                       環境ルート・プロジェクト・タスク用ひな形
@@ -18,7 +18,8 @@ docs/                            設計、公式資料、取り込み元、変�
 .serena/memories/                Serena向けの索引と長期メモリ
 ```
 
-詳細な責務と読込順は `docs/INSTRUCTION_ARCHITECTURE.md` を参照してください。
+詳細な責務と読込順は `docs/INSTRUCTION_ARCHITECTURE.md`、タスク別の対応表は
+`instructions/use-cases/README.md`を参照してください。
 
 ## 使い方
 
