@@ -13,6 +13,8 @@ TEXT_EXTENSIONS = {".json", ".md", ".py", ".toml", ".yaml", ".yml"}
 REQUIRED_PATHS = (
     "AGENTS.md",
     "README.md",
+    "adapters/README.md",
+    "adapters/codex.md",
     "docs/MAINTENANCE.md",
     "docs/SKILL_MANAGEMENT.md",
     "instructions/core/principles.md",
@@ -22,6 +24,11 @@ REQUIRED_PATHS = (
     "scripts/validate_skills.py",
     "skills/README.md",
 )
+REQUIRED_TEXT_MARKERS = {
+    "instructions/core/task-lifecycle.md": (
+        "adapters/README.md",
+    ),
+}
 LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 MEMORY_PATTERN = re.compile(r"mem:([a-zA-Z0-9_-]+)")
 MACHINE_PATH_PATTERNS = (
@@ -136,6 +143,16 @@ def validate_repository(root: Path) -> tuple[list[Issue], int, int]:
             continue
         assert text is not None
         issues.extend(validate_text_file(root, path, text))
+        for marker in REQUIRED_TEXT_MARKERS.get(relative, ()):
+            if marker not in text:
+                issues.append(
+                    Issue(
+                        "ERROR",
+                        "missing-required-routing",
+                        relative,
+                        f"必須のルーティング参照がありません: {marker}",
+                    )
+                )
         if path.suffix.lower() == ".md":
             markdown.append((path, text))
             issues.extend(validate_markdown_links(root, path, text))

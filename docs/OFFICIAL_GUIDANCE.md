@@ -1,6 +1,6 @@
 # 公式・標準資料と採用方針
 
-確認日: 2026-07-26
+確認日: 2026-07-27
 
 ## OpenAI Codex
 
@@ -8,6 +8,7 @@
   - プロンプトにGoal、Context、Constraints、Done whenを含める。
   - AGENTS.mdは短く実用的に保ち、肥大化したら計画、レビュー、アーキテクチャなどを
     タスク別Markdownへ分ける。
+  - 繰り返す誤りには短いルーティングを追加し、詳細手順は別文書へ分離する。
   - ビルド、テスト、リント、規約、禁止事項、完了条件を明記する。
 - [Custom instructions with AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
   - グローバル、リポジトリ、ネストしたディレクトリの順に指示を階層化する。
