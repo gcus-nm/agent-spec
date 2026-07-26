@@ -12,6 +12,7 @@ Skillディレクトリ内には、利用時に不要なREADME、変更履歴、
 
 | Skill | 用途 | 主な利用範囲 |
 |---|---|---|
+| [`check-codex-reset-credits`](check-codex-reset-credits/SKILL.md) | Codexの利用可能なリセット権と各有効期限をBashから安全に確認する | macOS・Linux・WSLでのアカウント確認 |
 | [`maintain-agent-spec`](maintain-agent-spec/SKILL.md) | 指示の導線を含め、このリポジトリの仕様を分類、更新、検証する | 仕様文書の更新 |
 | [`verify-agent-spec-setup`](verify-agent-spec-setup/SKILL.md) | ルートAGENTS、必須文書、導入済みSkill、実行時検出を診断する | 新環境のセットアップ確認 |
 

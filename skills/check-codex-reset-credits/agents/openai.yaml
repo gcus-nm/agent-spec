@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codexリセット権を確認"
+  short_description: "Codexの残りリセット権と有効期限を安全に確認する"
+  default_prompt: "Use $check-codex-reset-credits to check my available Codex reset credits and their expiration times."
