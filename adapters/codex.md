@@ -21,6 +21,26 @@ Codexが探索する`.agents/skills`への明示的な導入・同期は`docs/SK
 従います。新環境では`scripts/setup_environment.py`をdry-run後に適用すると、ルートAGENTS
 生成、Skill導入、検証をまとめて実行できます。
 
+## macOSでGitHub CLI認証を診断する
+
+macOSのシステム資格情報ストアへGitHub CLIのトークンを保存している環境では、
+CodexサンドボックスからKeychainへアクセスできず、`gh auth status`が保存済みアカウントを
+無効と報告することがあります。この結果だけで認証切れと断定しません。
+
+1. `GH_TOKEN`、`GITHUB_TOKEN`などの認証用環境変数が設定されているかを確認します。
+   値は表示せず、設定の有無だけを扱います。
+2. Keychain保存を想定している場合は、ユーザー承認を得て、同じ読み取り専用の
+   `gh auth status`をサンドボックス外のユーザーコンテキストで再実行します。
+3. サンドボックス外でも失敗した場合、または利用者がアカウント切替を希望した場合にだけ、
+   `gh auth login`による再認証を案内します。
+
+診断中に`gh auth token`や`printenv GH_TOKEN`などでトークン本体を表示しません。この手順は
+macOSのKeychainへ保存したGitHub CLI認証の切り分けに限定し、他OSや環境変数認証の失敗原因へ
+一般化しません。
+
 公式: [Custom instructions with AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 
 Skill公式: [Build skills](https://learn.chatgpt.com/docs/build-skills)
+
+GitHub CLI公式: [gh auth login](https://cli.github.com/manual/gh_auth_login)、
+[gh help environment](https://cli.github.com/manual/gh_help_environment)

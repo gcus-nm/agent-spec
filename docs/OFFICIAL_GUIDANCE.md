@@ -1,6 +1,6 @@
 # 公式・標準資料と採用方針
 
-確認日: 2026-07-21
+確認日: 2026-07-26
 
 ## OpenAI Codex
 
@@ -30,6 +30,16 @@
   - 複数SkillやMCP、コネクター、フックをまとめて配布する場合にPluginを選ぶ。
 - [Prompting Codex](https://learn.chatgpt.com/docs/prompting)
 - [Codex execution plans](https://developers.openai.com/cookbook/articles/codex_exec_plans)
+- [GitHub CLI `gh auth login`](https://cli.github.com/manual/gh_auth_login)
+  - ブラウザー認証で得たトークンは、通常はシステム資格情報ストアへ安全に保存される。
+  - 資格情報ストアを利用できない場合は、平文ファイルへフォールバックすることがある。
+- [GitHub CLI environment variables](https://cli.github.com/manual/gh_help_environment)
+  - `GH_TOKEN`や`GITHUB_TOKEN`は、`github.com`に対する保存済み資格情報より優先される。
+  - 認証診断では環境変数の値を表示せず、設定の有無だけを確認する。
+
+CodexサンドボックスからmacOS Keychainへアクセスできず、`gh auth status`が認証失敗に見える
+事象はローカルで確認した運用上の注意です。GitHub CLIの全環境に共通する公式仕様としては
+扱わず、サンドボックス外で同じ読み取り専用チェックを再実行して切り分けます。
 
 ## オープン形式・他エージェント
 
