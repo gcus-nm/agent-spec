@@ -4,14 +4,14 @@
 
 ## 常時読む
 
-- `communication.md`: 日本語応答とセルフレビュー
-- `project-recording.md`: プロジェクトAGENTSと記録方針
-- `mcp-and-voicevox.md`: MCP優先方針と音声通知
+- [`communication.md`](communication.md): 日本語応答とセルフレビュー
+- [`project-recording.md`](project-recording.md): プロジェクトAGENTSと記録方針
+- [`mcp-and-voicevox.md`](mcp-and-voicevox.md): MCP優先方針と音声通知
 
 ## 条件付きで読む
 
-- UnityまたはC#の作業: `unity-csharp.md`
-- Webサービスの新規作成: `web-development.md`
+- UnityまたはC#の作業: [`unity-csharp.md`](unity-csharp.md)
+- Webサービスの新規作成: [`web-development.md`](web-development.md)
 
 ## 競合
 

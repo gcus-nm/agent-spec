@@ -13,7 +13,9 @@ PLACEHOLDER = "<AGENT_SPEC_REPOSITORY_PATH>"
 REQUIRED_REFERENCES = (
     "instructions/core/principles.md",
     "instructions/core/task-lifecycle.md",
+    "instructions/use-cases/README.md",
     "docs/MAINTENANCE.md",
+    "docs/SKILL_MANAGEMENT.md",
 )
 
 

@@ -13,15 +13,85 @@ TEXT_EXTENSIONS = {".json", ".md", ".py", ".toml", ".yaml", ".yml"}
 REQUIRED_PATHS = (
     "AGENTS.md",
     "README.md",
+    "ROOT_AGENTS_TEMPLATE.md",
+    "adapters/README.md",
+    "adapters/codex.md",
+    "adapters/gemini-cli.md",
+    "adapters/github-copilot.md",
+    "docs/INSTRUCTION_ARCHITECTURE.md",
     "docs/MAINTENANCE.md",
     "docs/SKILL_MANAGEMENT.md",
+    "instructions/core/instruction-authoring.md",
     "instructions/core/principles.md",
     "instructions/core/task-lifecycle.md",
+    "instructions/use-cases/README.md",
+    "instructions/use-cases/code-change.md",
+    "instructions/use-cases/code-review.md",
+    "instructions/use-cases/research.md",
+    "profiles/personal/AGENTS.md",
+    "profiles/personal/communication.md",
+    "profiles/personal/mcp-and-voicevox.md",
+    "profiles/personal/project-recording.md",
+    "profiles/personal/unity-csharp.md",
+    "profiles/personal/web-development.md",
     "scripts/install_skills.py",
     "scripts/setup_environment.py",
     "scripts/validate_skills.py",
     "skills/README.md",
+    "skills/maintain-agent-spec/SKILL.md",
+    "templates/ROOT_AGENTS_GENERIC.md",
 )
+REQUIRED_TEXT_MARKERS = {
+    "AGENTS.md": (
+        "instructions/core/principles.md",
+        "instructions/core/task-lifecycle.md",
+        "instructions/use-cases/README.md",
+        "instructions/core/instruction-authoring.md",
+        "docs/MAINTENANCE.md",
+        "docs/SKILL_MANAGEMENT.md",
+    ),
+    "ROOT_AGENTS_TEMPLATE.md": (
+        "instructions/core/principles.md",
+        "instructions/core/task-lifecycle.md",
+        "profiles/personal/AGENTS.md",
+        "instructions/use-cases/README.md",
+        "docs/MAINTENANCE.md",
+        "docs/SKILL_MANAGEMENT.md",
+    ),
+    "adapters/README.md": (
+        "codex.md",
+        "gemini-cli.md",
+        "github-copilot.md",
+    ),
+    "instructions/core/task-lifecycle.md": (
+        "adapters/README.md",
+        "instructions/core/instruction-authoring.md",
+        "instructions/use-cases/README.md",
+    ),
+    "instructions/use-cases/README.md": (
+        "code-change.md",
+        "code-review.md",
+        "research.md",
+    ),
+    "profiles/personal/AGENTS.md": (
+        "communication.md",
+        "mcp-and-voicevox.md",
+        "project-recording.md",
+        "unity-csharp.md",
+        "web-development.md",
+    ),
+    "skills/maintain-agent-spec/SKILL.md": (
+        "instructions/use-cases/README.md",
+        "scripts/validate_repository.py",
+    ),
+    "templates/ROOT_AGENTS_GENERIC.md": (
+        "instructions/core/principles.md",
+        "instructions/core/task-lifecycle.md",
+        "instructions/use-cases/README.md",
+        "docs/MAINTENANCE.md",
+        "docs/SKILL_MANAGEMENT.md",
+    ),
+}
 LINK_PATTERN = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 MEMORY_PATTERN = re.compile(r"mem:([a-zA-Z0-9_-]+)")
 MACHINE_PATH_PATTERNS = (
@@ -136,6 +206,16 @@ def validate_repository(root: Path) -> tuple[list[Issue], int, int]:
             continue
         assert text is not None
         issues.extend(validate_text_file(root, path, text))
+        for marker in REQUIRED_TEXT_MARKERS.get(relative, ()):
+            if marker not in text:
+                issues.append(
+                    Issue(
+                        "ERROR",
+                        "missing-required-routing",
+                        relative,
+                        f"必須のルーティング参照がありません: {marker}",
+                    )
+                )
         if path.suffix.lower() == ".md":
             markdown.append((path, text))
             issues.extend(validate_markdown_links(root, path, text))
