@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dockerサービスを公開"
+  short_description: "Docker ComposeサービスをOCI Relay経由で安全に公開"
+  default_prompt: "$publish-docker-serviceを使って、このDocker Compose WebサービスをOCI Relay Control経由で安全に公開してください。"
