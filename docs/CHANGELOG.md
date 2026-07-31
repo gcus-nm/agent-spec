@@ -1,5 +1,13 @@
 # 変更履歴
 
+## 2026-07-31
+
+- 既存のDocker Compose WebサービスをOCI Relay Controlの共有ネットワークへ接続し、
+  認証、秘密値、公開Origin、DNS、TLS、外部応答を検証して安全に公開・停止する
+  `publish-docker-service` Skillを追加しました。
+- `publish-docker-service`へWebルート専用Basic認証の自動生成、Git管理外ファイルへの
+  一度限り保存、Traefikプレビューと外部401応答の検証手順を追加しました。
+
 ## 2026-07-30
 
 - 個人プロファイルへ、ユーザーがコピーして実行するコマンドを改行や行継続なしで

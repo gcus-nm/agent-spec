@@ -1,6 +1,6 @@
 # 公式・標準資料と採用方針
 
-確認日: 2026-07-27
+確認日: 2026-07-31
 
 ## OpenAI Codex
 
@@ -57,6 +57,27 @@ CodexサンドボックスからmacOS Keychainへアクセスできず、`gh aut
   - グローバル、ワークスペース、必要時の局所コンテキストを階層化できる。
   - `@file.md`による分割読込をサポートするが、これはGemini固有機能なので
     ベンダー非依存のAGENTS.mdでは前提にしない。
+
+## Docker Compose
+
+- [Networking in Compose](https://docs.docker.com/compose/how-tos/networking/)
+  - 別Composeプロジェクトと共有する既存ネットワークは`external: true`と`name`で参照する。
+  - 公開対象サービスは共有ネットワークとプロジェクト固有の`default`ネットワークを
+    併用できる。
+- [Compose networks reference](https://docs.docker.com/reference/compose-file/networks/)
+  - 外部ネットワークのライフサイクルはCompose管理外とし、存在しない場合はエラーにする。
+- [Docker Compose application model](https://docs.docker.com/compose/intro/compose-application-model/)
+  - `docker compose up`でサービスを起動し、`docker compose ps`で稼働状態を確認する。
+  - 変数展開を含む構成は`docker compose config`で検証する。
+
+## Traefik
+
+- [BasicAuth middleware](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/basicauth/)
+  - パスワードは平文ではなく、htpasswd互換のMD5、SHA-1、bcryptハッシュで設定する。
+  - `usersFile`でハッシュ専用ファイルを参照できる。
+  - `removeHeader: true`で認証成功後の`Authorization`ヘッダーをバックエンドへ渡さない。
+- [File provider](https://doc.traefik.io/traefik/reference/routing-configuration/other-providers/file/)
+  - 同じfile provider内で定義したBasicAuth middlewareをHTTP routerへ適用する。
 
 ## このリポジトリでの採用判断
 
