@@ -1,6 +1,6 @@
 # 公式・標準資料と採用方針
 
-確認日: 2026-07-31
+確認日: 2026-08-03
 
 ## OpenAI Codex
 
@@ -57,6 +57,29 @@ CodexサンドボックスからmacOS Keychainへアクセスできず、`gh aut
   - グローバル、ワークスペース、必要時の局所コンテキストを階層化できる。
   - `@file.md`による分割読込をサポートするが、これはGemini固有機能なので
     ベンダー非依存のAGENTS.mdでは前提にしない。
+
+## Web API、CLI、AI操作
+
+- [OpenAPI Specification v3.2.0](https://spec.openapis.org/oas/v3.2.0.html)
+  - HTTP APIを言語非依存かつ機械可読に記述し、人間とプログラムがソースコードを読まずに
+    操作とデータ形式を理解できる契約として使える。
+- [OWASP REST Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html)
+  - 非公開APIでは各エンドポイントでアクセス制御を行い、入力検証とワークフローの状態遷移を
+    サーバー側で強制する。
+  - 管理エンドポイントの公開を制限し、セキュリティ上重要な操作の前後を監査記録へ残す。
+- [The Twelve-Factor App: Admin processes](https://12factor.net/admin-processes)
+  - マイグレーションや一時スクリプトなどの管理処理は、通常プロセスと同じリリース、コード、
+    設定、依存関係を使う一回限りのプロセスとして実行する。
+- [Model Context Protocol: Tools](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
+  - AIが呼び出すツールに入力・出力スキーマと構造化結果を持たせ、読取専用、破壊的、冪等性
+    などの性質を注釈で表現できる。
+  - 入力検証、アクセス制御、確認、結果検証、タイムアウト、監査をツール実装とクライアントで
+    分担する。
+
+このリポジトリでは、業務ルールをApplication Service、外部契約をAPI記述へ集約し、Web、CLI、
+必要に応じたMCPを同じ機能のクライアントとして扱います。遠隔利用するCLIはAPIの薄い
+クライアントとし、ブラウザーやWebサーバーからCLIを通常の実行経路として呼び出しません。
+データ変更CLIには、構造化出力、dry-run、冪等性、最小権限、監査記録を求めます。
 
 ## Docker Compose
 

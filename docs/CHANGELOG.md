@@ -1,5 +1,14 @@
 # 変更履歴
 
+## 2026-08-03
+
+- バックエンドを伴うWebサービスで、主要操作をAPI経由のCLIからも利用可能にし、Web、CLI、
+  必要に応じたMCPで業務ロジックを共有する個人向けWeb開発方針を追加しました。
+- AIがCLIから安全にデータ投入できるよう、JSON出力、dry-run、冪等性、最小権限、監査記録、
+  非同期Import Job、Web経路との整合性検証を要件化しました。
+- OpenAPI、OWASP REST Security、Twelve-Factor Admin processes、MCP Toolsの公式・標準資料と
+  採用判断を記録しました。
+
 ## 2026-07-31
 
 - 既存のDocker Compose WebサービスをOCI Relay Controlの共有ネットワークへ接続し、

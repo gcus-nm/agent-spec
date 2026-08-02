@@ -11,7 +11,8 @@
 ## 条件付きで読む
 
 - UnityまたはC#の作業: [`unity-csharp.md`](unity-csharp.md)
-- Webサービスの新規作成: [`web-development.md`](web-development.md)
+- Webサービスの新規作成、またはバックエンドを伴うWebページの設計・構築:
+  [`web-development.md`](web-development.md)
 
 ## 競合
 
