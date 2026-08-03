@@ -31,6 +31,11 @@
   - 複数SkillやMCP、コネクター、フックをまとめて配布する場合にPluginを選ぶ。
 - [Prompting Codex](https://learn.chatgpt.com/docs/prompting)
 - [Codex execution plans](https://developers.openai.com/cookbook/articles/codex_exec_plans)
+- [Agent approvals & security](https://learn.chatgpt.com/docs/agent-approvals-security.md)
+  - サンドボックス外の操作は、必要なコマンドへ範囲を限定した承認で実行する。
+- [Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox.md)
+  - Windowsのネイティブサンドボックスは、制限されたユーザーとトークンで
+    ファイルシステムやネットワークへのアクセスを分離する。
 - [GitHub CLI `gh auth login`](https://cli.github.com/manual/gh_auth_login)
   - ブラウザー認証で得たトークンは、通常はシステム資格情報ストアへ安全に保存される。
   - 資格情報ストアを利用できない場合は、平文ファイルへフォールバックすることがある。
@@ -38,9 +43,11 @@
   - `GH_TOKEN`や`GITHUB_TOKEN`は、`github.com`に対する保存済み資格情報より優先される。
   - 認証診断では環境変数の値を表示せず、設定の有無だけを確認する。
 
-CodexサンドボックスからmacOS Keychainへアクセスできず、`gh auth status`が認証失敗に見える
-事象はローカルで確認した運用上の注意です。GitHub CLIの全環境に共通する公式仕様としては
-扱わず、サンドボックス外で同じ読み取り専用チェックを再実行して切り分けます。
+Codexサンドボックスからシステム資格情報ストアへアクセスできず、`gh auth status`が
+認証失敗に見える事象は、macOS KeychainとWindowsネイティブ環境でローカル確認した
+運用上の注意です。GitHub CLIの全環境に共通する公式仕様としては扱わず、サンドボックス外で
+同じ読み取り専用チェックを再実行して切り分けます。外側で成功した場合は再ログインせず、
+必要なGitHub操作だけを範囲限定の承認で実行します。
 
 ## オープン形式・他エージェント
 
