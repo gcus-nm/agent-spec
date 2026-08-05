@@ -101,7 +101,12 @@ REQUIRED_TEXT_MARKERS = {
     ),
     "scripts/setup_environment.py": (
         "--migrate-root-agents",
+        "--refresh-skills",
         "pre-token-efficiency.bak",
+    ),
+    "scripts/install_skills.py": (
+        "--refresh-existing",
+        "pre-refresh-backups",
     ),
     "templates/ROOT_AGENTS_GENERIC.md": (
         "instructions/core/principles.md",

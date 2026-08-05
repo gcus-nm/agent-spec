@@ -5,8 +5,13 @@ import hashlib
 import json
 import os
 import shutil
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+
+BACKUP_DIRECTORY_SUFFIX = ".pre-refresh-backups"
+BACKUP_SUFFIX = ".pre-refresh.bak"
 
 
 @dataclass(frozen=True)
@@ -91,9 +96,127 @@ def inspect_existing(source: Path, destination: Path) -> Result | None:
     )
 
 
-def install_skill(source: Path, destination: Path, mode: str, apply: bool) -> Result:
+def next_backup_path(destination: Path) -> Path:
+    backup_root = destination.parent.with_name(
+        destination.parent.name + BACKUP_DIRECTORY_SUFFIX
+    )
+    base = backup_root / (destination.name + BACKUP_SUFFIX)
+    if not base.exists():
+        return base
+    for index in range(1, 10_000):
+        candidate = backup_root / f"{destination.name}{BACKUP_SUFFIX}.{index}"
+        if not candidate.exists():
+            return candidate
+    raise OSError("利用可能なバックアップ名を確保できません")
+
+
+def refresh_copy(source: Path, destination: Path, apply: bool) -> Result:
+    try:
+        backup = next_backup_path(destination)
+    except (OSError, ValueError) as error:
+        return Result(
+            "FAIL",
+            source.name,
+            str(source),
+            str(destination),
+            f"更新準備に失敗しました: {error}",
+        )
+    if not apply:
+        return Result(
+            "PLAN",
+            source.name,
+            str(source),
+            str(destination),
+            f"既存コピーを{backup}へバックアップして正本で更新予定です",
+        )
+
+    backup_root = backup.parent
+    moved_existing = False
+    try:
+        backup_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(
+            prefix=f".{destination.name}.refresh.", dir=backup_root
+        ) as temporary_root:
+            staged = Path(temporary_root) / destination.name
+            shutil.copytree(source, staged)
+            destination.rename(backup)
+            moved_existing = True
+            try:
+                staged.rename(destination)
+            except OSError as install_error:
+                try:
+                    backup.rename(destination)
+                    moved_existing = False
+                except OSError as restore_error:
+                    return Result(
+                        "FAIL",
+                        source.name,
+                        str(source),
+                        str(destination),
+                        "更新と復元に失敗しました: "
+                        f"更新={install_error}; 復元={restore_error}; バックアップ={backup}",
+                    )
+                return Result(
+                    "FAIL",
+                    source.name,
+                    str(source),
+                    str(destination),
+                    f"更新に失敗したため既存コピーを復元しました: {install_error}",
+                )
+    except OSError as error:
+        if moved_existing:
+            return Result(
+                "FAIL",
+                source.name,
+                str(source),
+                str(destination),
+                "更新に失敗しました。"
+                f"既存コピーのバックアップ: {backup}; エラー: {error}",
+            )
+        return Result(
+            "FAIL",
+            source.name,
+            str(source),
+            str(destination),
+            f"更新に失敗しました: {error}",
+        )
+    return Result(
+        "PASS",
+        source.name,
+        str(source),
+        str(destination),
+        f"既存コピーを正本で更新しました。バックアップ: {backup}",
+    )
+
+
+def install_skill(
+    source: Path,
+    destination: Path,
+    mode: str,
+    apply: bool,
+    refresh_existing: bool,
+) -> Result:
     existing = inspect_existing(source, destination)
     if existing is not None:
+        if (
+            refresh_existing
+            and existing.status == "FAIL"
+            and mode == "copy"
+            and not destination.is_symlink()
+            and destination.is_dir()
+        ):
+            try:
+                directory_digest(source)
+                directory_digest(destination)
+            except OSError as error:
+                return Result(
+                    "FAIL",
+                    source.name,
+                    str(source),
+                    str(destination),
+                    f"更新前に比較できません: {error}",
+                )
+            return refresh_copy(source, destination, apply)
         return existing
     if not apply:
         return Result(
@@ -132,6 +255,11 @@ def main() -> int:
         help="Skill導入先ディレクトリ",
     )
     parser.add_argument("--mode", choices=("symlink", "copy"), default="symlink")
+    parser.add_argument(
+        "--refresh-existing",
+        action="store_true",
+        help="正本と異なる既存Skillコピーをバックアップして更新する",
+    )
     parser.add_argument("--apply", action="store_true", help="実際に導入する。省略時はdry-run")
     parser.add_argument("--json", action="store_true", help="JSONで出力する")
     args = parser.parse_args()
@@ -148,7 +276,16 @@ def main() -> int:
             Result("FAIL", "-", str(repo / "skills"), str(target), "導入先がディレクトリではありません")
         ]
     else:
-        results = [install_skill(source, target / source.name, args.mode, args.apply) for source in skills]
+        results = [
+            install_skill(
+                source,
+                target / source.name,
+                args.mode,
+                args.apply,
+                args.refresh_existing,
+            )
+            for source in skills
+        ]
 
     counts = {
         status: sum(result.status == status for result in results)
@@ -161,6 +298,7 @@ def main() -> int:
                     "repo": str(repo),
                     "target": str(target),
                     "mode": args.mode,
+                    "refresh_existing": args.refresh_existing,
                     "apply": args.apply,
                     "counts": counts,
                     "results": [asdict(result) for result in results],
