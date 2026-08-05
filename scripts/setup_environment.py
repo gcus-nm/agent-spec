@@ -255,7 +255,11 @@ def prepare_root_agents(
 
 
 def install_skills(
-    repo: Path, target: Path, mode: str, apply: bool
+    repo: Path,
+    target: Path,
+    mode: str,
+    apply: bool,
+    refresh_existing: bool,
 ) -> list[Result]:
     script = repo / "scripts" / "install_skills.py"
     if not script.is_file():
@@ -273,6 +277,8 @@ def install_skills(
     ]
     if apply:
         command.append("--apply")
+    if refresh_existing:
+        command.append("--refresh-existing")
     code, payload, detail = run_json(command, repo)
     if payload is None or not isinstance(payload.get("results"), list):
         return [Result("FAIL", "skills", str(target), f"Skill導入結果を読めません: {detail}")]
@@ -334,6 +340,11 @@ def main() -> int:
     )
     parser.add_argument("--skill-mode", choices=("auto", "symlink", "copy"), default="auto")
     parser.add_argument(
+        "--refresh-skills",
+        action="store_true",
+        help="正本と異なる既存Skillコピーをバックアップして更新する",
+    )
+    parser.add_argument(
         "--migrate-root-agents",
         action="store_true",
         help="読取互換の旧ルートAGENTSをバックアップして最適化版へ移行する",
@@ -361,7 +372,15 @@ def main() -> int:
             )
         )
     if not any(item.status == "FAIL" for item in results):
-        results.extend(install_skills(repo, skills_target, skill_mode, args.apply))
+        results.extend(
+            install_skills(
+                repo,
+                skills_target,
+                skill_mode,
+                args.apply,
+                args.refresh_skills,
+            )
+        )
     if args.apply and not any(item.status == "FAIL" for item in results):
         results.append(verify_setup(repo, root_agents, skills_target, args.profile))
 
@@ -375,6 +394,7 @@ def main() -> int:
         "root_agents": str(root_agents),
         "skills_target": str(skills_target),
         "skill_mode": skill_mode,
+        "refresh_skills": args.refresh_skills,
         "migrate_root_agents": args.migrate_root_agents,
         "apply": args.apply,
         "counts": counts,

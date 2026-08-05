@@ -46,6 +46,11 @@ python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/setup_environment.py \
 既存ルートAGENTSとの競合でFAILになった場合は上書きせず、対象ファイルへテンプレートの参照を
 手動統合する。
 
+導入済みSkillコピーが正本と異なる場合は、差分を確認する。セットアップの修正まで許可されて
+おり、正本へ戻す場合だけ、dry-runと適用の両方へ`--refresh-skills`を追加する。更新前コピーは
+Skill探索先の外にある`<SKILLS_TARGET>.pre-refresh-backups/`へ保存される。シンボリックリンク、
+同名ファイル、比較不能なコピーは自動変更しない。
+
 汎用プロファイルでは`--expect-profile`を省略する。Skill導入を必須にしない環境では
 `--require-skills`を省略する。複数の導入先は`--installed-skills-dir`を繰り返す。
 
@@ -73,7 +78,8 @@ python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/install_skills.py \
 ```
 
 診断だけを依頼されている場合は実行せず、修正案として報告する。コピーが必要な環境では
-`--mode copy`へ変更する。
+`--mode copy`へ変更する。正本と異なる既存コピーを明示的に再同期する場合は、dry-runと適用の
+両方へ`--refresh-existing`を追加する。
 
 ## 実行時検出を確認する
 

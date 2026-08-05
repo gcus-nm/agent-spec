@@ -53,6 +53,18 @@ python3 scripts/setup_environment.py --repo "$PWD" --migrate-root-agents --apply
 未知形式やシンボリックリンクの既存ファイルは自動移行しません。Windowsでは`python3`を
 `python`へ置き換えます。
 
+Windowsのコピー方式などで導入済みSkillが正本と異なる場合、通常実行は安全のためFAILで
+停止します。差分を確認し、既存コピーをバックアップして正本へ同期する場合だけ
+`--refresh-skills`を明示します。
+
+```text
+python scripts/setup_environment.py --repo "$PWD" --migrate-root-agents --refresh-skills
+python scripts/setup_environment.py --repo "$PWD" --migrate-root-agents --refresh-skills --apply
+```
+
+旧コピーはSkill探索先の外にある`$HOME/.agents/skills.pre-refresh-backups`へ保存されます。
+シンボリックリンク、同名ファイル、比較不能なコピーはこのオプションでも自動変更しません。
+
 ### 汎用ルールだけを使う
 
 セットアップコマンドへ`--profile generic`を付けます。個人プロファイルは読み込まれません。
@@ -85,6 +97,8 @@ python3 scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "
 ```
 
 Windowsでは上記の`python3`を`python`、`--mode symlink`を`--mode copy`へ置き換えます。
+正本と異なる既存コピーを再同期する場合は、dry-runと適用の両方へ
+`--refresh-existing`を追加します。
 
 導入後はCodexを再起動するか新しいセッションを開始し、
 `$verify-agent-spec-setup`で再検証します。詳細とコピー方式は`docs/SKILL_MANAGEMENT.md`を

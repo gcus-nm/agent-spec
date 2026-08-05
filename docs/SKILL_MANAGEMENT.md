@@ -115,6 +115,20 @@ python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --migra
 python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --migrate-root-agents --apply
 ```
 
+コピー方式ではrepo更新後に導入済みSkillと正本が異なることがあります。既定動作はFAILで
+停止します。差分を確認し、既存コピーをバックアップして正本へ同期する場合だけ、dry-runと
+適用の両方へ`--refresh-skills`を明示します。
+
+```text
+python scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --refresh-skills
+python scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --refresh-skills --apply
+```
+
+更新前コピーはSkill探索先の外にある`<SKILLS_TARGET>.pre-refresh-backups/`へ保存します。
+ローカル変更は有効なSkillから外れますがバックアップには残るため、必要な内容はrepo正本へ
+整理します。このオプションは通常ディレクトリのコピーだけを対象とし、シンボリックリンク、
+同名ファイル、比較不能なコピーは自動変更しません。
+
 ### Skillだけを導入・再同期する
 
 全Skillをユーザー共通の導入先へ安全に配置するには、まずdry-runで計画を確認してから
@@ -132,10 +146,17 @@ python scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$
 python scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode copy --apply
 ```
 
+正本と異なる既存コピーを再同期する場合は、先に差分を確認してから明示的に更新します。
+
+```text
+python scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode copy --refresh-existing
+python scripts/install_skills.py --repo <AGENT_SPEC_REPOSITORY_PATH> --target "$HOME/.agents/skills" --mode copy --refresh-existing --apply
+```
+
 Windowsで開発者モードなどによりリンク作成権限がある場合は`--mode symlink`も選べます。
 シンボリックリンクを作れない環境では`--mode copy`を使用します。スクリプトは既存の異なる
-コピーやリンクを上書きしません。FAILになった対象は差分とリンク先を確認し、手動で整理して
-から再実行します。
+コピーやリンクを既定では上書きしません。FAILになった対象は差分とリンク先を確認し、コピー
+だけを`--refresh-existing`で再同期するか、手動で整理してから再実行します。
 
 CodexはSkill変更を通常自動検出します。表示されない場合は新しいセッションまたはCodexの
 再起動後に、`$<skill-name>`またはSkill一覧で確認します。その後、
