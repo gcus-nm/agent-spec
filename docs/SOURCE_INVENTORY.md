@@ -3,10 +3,10 @@
 ## 個人プロファイルへ取り込んだ情報
 
 - 現在のセッションで提供されたルートAGENTS指示
-  - 日本語応答と非公開セルフレビュー
-  - プロジェクトAGENTSの参照・記録方針
-  - uLoopMCP、Serena、Playwright、Context7、GitHub、File Systemの利用方針
-  - VOICEVOXの話者、速度、通知タイミング
+  - 日本語応答と短い完了前確認
+  - プロジェクトAGENTSの参照と、永続性のある規則・判断・変更履歴を作業中に記録する方針
+  - Unity CLI Loop、Serena、Playwright、Context7、GitHubの条件付き利用方針
+  - 明示的に有効化された場合だけのVOICEVOX設定
   - UnityのnullチェックとC# 10規約
   - 新規Webサービスを、明示指定がない限りDockerコンテナとして作成する方針
   - Gitコミットメッセージを`<type>: <日本語の要約>`形式に統一する方針
@@ -27,6 +27,8 @@
 - AGENTS.mdオープン形式の構成・階層化
 - GitHub CopilotとGemini CLIのスコープ分離・モジュール化の考え方
 - 安全な実装、調査、レビューに共通するタスクライフサイクル
+- 2026-08-05のトークン効率改善依頼で、通常タスクの常時読込を短い環境ルートと
+  プロジェクトAGENTSへ縮小し、詳細原則と索引を条件付きへ変更した設計
 
 出典URLと採用判断は `docs/OFFICIAL_GUIDANCE.md` に集約しています。
 
@@ -48,6 +50,17 @@
   `skills/README.md`を横断的な正本にしました。
 - 外部Skillを将来取り込む場合は、出典、ライセンス、ローカル変更、更新方法を本書へ
   追記します。
+
+## ツール選択の根拠
+
+- Unity CLI Loopの公式GitHub READMEで、旧名称からの改称、CLIとSkillの推奨、MCPの将来的な
+  非推奨可能性を確認しました。
+- Serena公式GitHub READMEで、シンボル単位の探索、参照解析、必要時に読むメモリの用途を
+  確認しました。
+- Context7公式ドキュメントとGitHub READMEで、CLI＋SkillとMCPの両方が提供されることを
+  確認しました。
+- Playwright公式ドキュメントで、CLIとMCPの役割およびMCPによる対話的ブラウザ操作を
+  確認しました。
 
 ## Serena
 

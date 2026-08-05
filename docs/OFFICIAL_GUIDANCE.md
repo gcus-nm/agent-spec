@@ -65,6 +65,26 @@ Codexサンドボックスからシステム資格情報ストアへアクセス
   - `@file.md`による分割読込をサポートするが、これはGemini固有機能なので
     ベンダー非依存のAGENTS.mdでは前提にしない。
 
+## エージェント向けツール
+
+確認日: 2026-08-05
+
+- [Unity CLI Loop](https://github.com/hatayama/unity-cli-loop)
+  - v1.0.0で旧名称から改称され、Unityのコンパイル、テスト、ログ、Play Mode、Editor操作、
+    スクリーンショットをCLIから扱える。
+  - Codex向けSkillを導入でき、READMEはMCPよりCLIを推奨している。
+- [Serena](https://github.com/oraios/serena)
+  - シンボル単位のコード探索と編集、参照元解析、必要時に読むプロジェクトメモリを提供する。
+- [Context7 CLI](https://context7.com/docs/clients/cli)
+  - 外部ライブラリ文書の取得、Skill導入、MCP設定をCLIから扱える。
+- [Context7](https://github.com/upstash/context7)
+  - CLI＋SkillとMCPの両方を提供するため、対象環境の必要性に応じて選択する。
+- [Playwright MCP](https://playwright.dev/docs/getting-started-mcp)
+  - アクセシビリティスナップショットを使った対話的ブラウザ操作を提供する。
+- [Playwright CLI capabilities](https://playwright.dev/agent-cli/capabilities)
+  - CLIとMCPは共通のPlaywright機能群を利用できる。再現可能なテストや反復操作はCLI、
+    未知のUIを探索する操作はMCPへ分けるローカル方針を採用する。
+
 ## Web API、CLI、AI操作
 
 - [OpenAPI Specification v3.2.0](https://spec.openapis.org/oas/v3.2.0.html)

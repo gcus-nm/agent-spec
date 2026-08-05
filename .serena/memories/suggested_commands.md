@@ -7,12 +7,13 @@
 - ファイル探索: `Get-ChildItem -Recurse -File`。`rg`が利用可能なら `rg --files` を優先。
 - プレースホルダー確認: `Select-String -Path README.md,ROOT_AGENTS_TEMPLATE.md,templates\\*.md -Pattern '<[^>]+>'`。
 - Serena参照確認: `serena memories check`。CLIがなければSerena MCPの一覧と `mem:` 参照を照合。
-- 個人用ルート配置: `ROOT_AGENTS_TEMPLATE.md`、汎用配置: `templates/ROOT_AGENTS_GENERIC.md` をコピーし、リポジトリパスを置換。
+- 個人用ルート配置: `ROOT_AGENTS_TEMPLATE.md`、汎用配置: `templates/ROOT_AGENTS_GENERIC.md` をコピーし、リポジトリパスを置換。通常タスクでは追加の共通文書を一律に読まない。
 - 他環境への更新依頼: `templates/UPDATE_REQUEST.md` を具体化し、`docs/MAINTENANCE.md` を必須参照にする。
 - Skill検証: リポジトリルートで `python scripts/validate_skills.py`。
 - repo全体検証: リポジトリルートで `python scripts/validate_repository.py`。
 - 新環境セットアップdry-run: `python scripts/setup_environment.py --repo <repo>`。
 - 新環境セットアップ: 上記へ`--apply`を追加する。汎用設定は`--profile generic`も追加する。
+- 旧ルート最適化dry-run: セットアップへ`--migrate-root-agents`を追加し、適用時だけさらに`--apply`を追加する。旧ファイルは同じディレクトリへバックアップされる。
 - Skill導入dry-run: `python scripts/install_skills.py --repo <repo> --target <skills-dir> --mode symlink`。
 - Skill導入: 上記へ `--apply` を追加する。リンク不可なら `--mode copy` を使う。
 - セットアップ検証: `python skills/verify-agent-spec-setup/scripts/verify_setup.py --repo <repo> --root-agents <AGENTS.md> --installed-skills-dir <skills-dir>`。

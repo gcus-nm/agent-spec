@@ -18,8 +18,9 @@ docs/                            設計、公式資料、取り込み元、変�
 .serena/memories/                Serena向けの索引と長期メモリ
 ```
 
-詳細な責務と読込順は `docs/INSTRUCTION_ARCHITECTURE.md`、タスク別の対応表は
-`instructions/use-cases/README.md`を参照してください。
+詳細な責務と読込順は `docs/INSTRUCTION_ARCHITECTURE.md` を参照してください。
+`instructions/use-cases/README.md` は、環境ルートに直接ルートがない特殊作業用の
+フォールバック索引です。
 
 ## 使い方
 
@@ -39,6 +40,18 @@ python3 scripts/setup_environment.py --repo "$PWD" --apply
 
 Windowsでは`python`で実行します。既存のルートAGENTSが必要な参照を満たさない場合は、
 自動上書きせず停止します。テンプレートを既存ファイルへ手動統合して再実行してください。
+旧形式の多段ルーターは読取互換として保持し、検証時に最適化テンプレートの手動統合を
+案内します。旧形式と判定できたファイルをバックアップして自動移行する場合は、先にdry-runを
+確認してから明示オプションを適用します。
+
+```text
+python3 scripts/setup_environment.py --repo "$PWD" --migrate-root-agents
+python3 scripts/setup_environment.py --repo "$PWD" --migrate-root-agents --apply
+```
+
+移行前ファイルは同じディレクトリの `AGENTS.md.pre-token-efficiency.bak` 系の名前へ保存します。
+未知形式やシンボリックリンクの既存ファイルは自動移行しません。Windowsでは`python3`を
+`python`へ置き換えます。
 
 ### 汎用ルールだけを使う
 
@@ -96,9 +109,12 @@ Skillの作成・更新・検証・配布ルールは`docs/SKILL_MANAGEMENT.md`�
 
 ## 設計方針
 
-- `AGENTS.md` は短く、正確で、常に適用すべき内容に限定します。
-- 詳細はユースケース別Markdownへ分け、ルーターから必要なものだけを読みます。
+- 通常タスクは、短い環境ルート、対象プロジェクトの `AGENTS.md`、条件に一致する追加文書か
+  Skillだけを読みます。
+- `AGENTS.md` は短く、正確で、常に適用すべき内容と条件付きルートに限定します。
+- 詳細は条件付きMarkdownへ分け、頻出タスクは入口から直接、特殊作業だけ索引経由で読みます。
 - 反復する実行手順はSkillにし、常時ルールや単なる長文資料と分離します。
+- ローカル処理は標準ツールとCLIを基本とし、MCPは固有能力が必要な場合だけ使います。
 - 個人設定とチーム共有ルールを分離します。
 - 繰り返し発生した問題だけを永続ルールへ昇格します。
 - 機械的に強制できる規則は、文章だけでなくリンター、テスト、型検査、フックでも
