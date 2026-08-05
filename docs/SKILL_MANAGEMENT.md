@@ -8,12 +8,18 @@
 | 内容 | 適切な置き場所 |
 |---|---|
 | 常に適用する短い規約・コマンド | `AGENTS.md`または`instructions/` |
+| 決定的なローカル検索、ビルド、テスト、変換 | 標準ツール、CLI、スクリプト |
 | 反復するタスクの手順、参照資料、決定的なスクリプト | Skill |
 | SkillとMCP、コネクター、フックなどをまとめて配布 | Plugin |
 | 外部データや外部操作 | MCPまたはコネクター |
 
 1回限りのプロンプトや、単なる長文資料をSkillへ昇格しません。明確な入力、手順、出力、
 再利用場面を持つ作業をSkillにします。
+
+MCPをトークン節約だけを理由に追加しません。ローカルの決定的処理はCLIまたはスクリプト、
+反復する判断と手順はSkill、外部データや対話的な外部操作はMCPまたはコネクターを選びます。
+同等の情報を返すツールを重複して呼ばず、大きなツールスキーマは必要なタスクだけで有効化
+します。
 
 ## 2. リポジトリ構成
 
@@ -98,8 +104,16 @@ Skill配置方式はmacOS・Linuxでシンボリックリンク、Windowsでコ�
 必要なら`--skill-mode symlink`または`--skill-mode copy`で明示します。
 
 スクリプトは既存ルートAGENTSを自動上書きしません。必要な参照と実際のrepoパスを持つ既存
-ファイルは保持し、互換性がない場合はFAILとして手動統合を案内します。既定はdry-runで、
-変更は`--apply`を指定した場合だけ行います。
+ファイルは保持します。旧形式の多段ルーターも読取互換として保持し、トークン効率化には
+新テンプレートの手動統合を案内します。旧形式と判定できた通常ファイルは、
+`--migrate-root-agents`を明示すると `AGENTS.md.pre-token-efficiency.bak` 系へバックアップして
+最適化版へ移行できます。未知形式とシンボリックリンクは移行しません。互換性がない場合は
+FAILとして手動統合を案内します。既定はdry-runで、変更は`--apply`を指定した場合だけ行います。
+
+```text
+python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --migrate-root-agents
+python3 scripts/setup_environment.py --repo <AGENT_SPEC_REPOSITORY_PATH> --migrate-root-agents --apply
+```
 
 ### Skillだけを導入・再同期する
 

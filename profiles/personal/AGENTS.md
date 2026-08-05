@@ -1,21 +1,23 @@
 # 個人プロファイル
 
-このプロファイルは個人向け設定です。汎用コアとして他利用者へ自動適用しません。
+このファイルは、旧ルートから個人プロファイルを直接参照する環境との互換用入口です。
+新しい個人用環境ルートは、常時設定を `ROOT_AGENTS_TEMPLATE.md` に直接持つため、通常タスクで
+本ファイルを追加読込しません。
 
-## 常時読む
-
-- [`communication.md`](communication.md): 日本語応答とセルフレビュー
-- [`project-recording.md`](project-recording.md): プロジェクトAGENTSと記録方針
-- [`mcp-and-voicevox.md`](mcp-and-voicevox.md): MCP優先方針と音声通知
+- 日本語で応答します。
+- ユーザーがコピーして実行するコマンドは、1コマンドにつき1行で提示します。
+- 将来も有効なプロジェクト固有の規則・判断や、利用者に影響する変更履歴は、作業中に
+  適切な永続記録へ作成・更新します。
+- 完了前に、正確性、スコープ、検証結果、意図しない変更を短く確認します。
 
 ## 条件付きで読む
 
-- UnityまたはC#の作業: [`unity-csharp.md`](unity-csharp.md)
-- Webサービスの新規作成、またはバックエンドを伴うWebページの設計・構築:
-  [`web-development.md`](web-development.md)
+- UnityまたはC#作業: [`unity-csharp.md`](unity-csharp.md)
+- バックエンドを伴うWebサービスの新規作成: [`web-development.md`](web-development.md)
+- Unity操作・検証、外部SDK調査、Web UI操作、GitHub上の作業でツール選択が必要な場合、
+  または明示的な音声通知:
+  [`mcp-and-voicevox.md`](mcp-and-voicevox.md)
+- 永続性のある規則・判断・変更履歴が生じる作業:
+  [`project-recording.md`](project-recording.md)
 
-## 競合
-
-- システム、開発者、ユーザーの明示指示を最優先します。
-- 作業対象プロジェクトの `AGENTS.md` と矛盾する場合、別の明示指示がなければ
-  プロジェクト側を優先します。
+`communication.md`は旧構成との互換用であり、新しい環境ルートでは常時読みません。

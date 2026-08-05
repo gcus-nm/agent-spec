@@ -56,6 +56,11 @@ python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/setup_environment.py \
 - Skill整合性: 必須Skillの存在、正本との内容差、古いコピー
 - 実行時検出: 新しいセッションでのAGENTS読込とSkill一覧
 
+旧形式の多段ルーターはFAILにせず読取互換のWARNとし、トークン効率化には新テンプレートの
+手動統合またはセットアップスクリプトの`--migrate-root-agents`が必要と報告する。後者は
+旧形式と判定できた通常ファイルだけをバックアップ後に移行し、未知形式やシンボリックリンクを
+上書きしない。
+
 Skill導入先がない、またはSkillが不足している場合は、repoルートの
 `scripts/install_skills.py`が出力する導入コマンドを提示する。macOS・Linuxの例は次のとおり。
 
@@ -89,4 +94,5 @@ python3 <AGENT_SPEC_REPOSITORY_PATH>/scripts/install_skills.py \
 2. FAILごとに対象パス、期待値、実際値、最小の修正案を示す。
 3. 診断依頼だけならファイルを修正しない。修正を依頼された場合は`maintain-agent-spec`または
    対象環境の指示に従って別工程として実施する。
-4. 実行したコマンド、未確認の層、VOICEVOX通知結果を報告する。
+4. 実行したコマンドと未確認の層を報告する。音声通知を明示的に要求された場合だけ、
+   その結果も報告する。

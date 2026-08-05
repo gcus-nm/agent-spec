@@ -10,12 +10,28 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-ROOT_AGENT_REFERENCES = (
+OPTIMIZED_COMMON_REFERENCES = (
     "instructions/core/principles.md",
     "instructions/core/task-lifecycle.md",
+    "instructions/core/instruction-authoring.md",
+    "instructions/use-cases/code-change.md",
+    "instructions/use-cases/code-review.md",
+    "instructions/use-cases/research.md",
     "instructions/use-cases/README.md",
+    "adapters/README.md",
     "docs/MAINTENANCE.md",
     "docs/SKILL_MANAGEMENT.md",
+)
+OPTIMIZED_PERSONAL_REFERENCES = (
+    "profiles/personal/unity-csharp.md",
+    "profiles/personal/web-development.md",
+    "profiles/personal/project-recording.md",
+    "profiles/personal/mcp-and-voicevox.md",
+)
+LEGACY_COMMON_REFERENCES = (
+    "instructions/core/principles.md",
+    "instructions/core/task-lifecycle.md",
+    "docs/MAINTENANCE.md",
 )
 
 
@@ -114,16 +130,60 @@ def check_root_agents(repo: Path, path: Path, expect_profile: str | None) -> lis
     else:
         findings.append(Finding("PASS", "root-agents-placeholder", str(path), "repoパス置換済み"))
 
-    for reference in ROOT_AGENT_REFERENCES:
-        status = "PASS" if reference in text else "FAIL"
-        message = "参照あり" if status == "PASS" else "必須参照がありません"
-        findings.append(Finding(status, "root-agents-reference", str(path), f"{reference}: {message}"))
+    optimized_references = OPTIMIZED_COMMON_REFERENCES
+    if expect_profile == "personal":
+        optimized_references += OPTIMIZED_PERSONAL_REFERENCES
+    optimized_profile_ok = expect_profile != "generic" or "profiles/personal/" not in text
+    optimized = optimized_profile_ok and all(
+        reference in text for reference in optimized_references
+    )
+    if expect_profile == "personal":
+        legacy_profile_ok = "profiles/personal/AGENTS.md" in text
+    elif expect_profile == "generic":
+        legacy_profile_ok = "profiles/personal/" not in text
+    else:
+        legacy_profile_ok = True
+    legacy_use_cases = "instructions/use-cases/" in text
+    legacy_chain = "タスク開始時に" in text
+    legacy = legacy_profile_ok and legacy_use_cases and legacy_chain and all(
+        reference in text for reference in LEGACY_COMMON_REFERENCES
+    )
+
+    if optimized:
+        findings.append(
+            Finding("PASS", "root-agents-routing", str(path), "条件付き直接ルーティングを確認しました")
+        )
+    elif legacy:
+        findings.append(
+            Finding(
+                "WARN",
+                "root-agents-legacy-routing",
+                str(path),
+                "旧ルーターは読取互換です。トークン効率化には新テンプレートを手動統合してください",
+            )
+        )
+    else:
+        missing = [reference for reference in optimized_references if reference not in text]
+        findings.append(
+            Finding(
+                "FAIL",
+                "root-agents-routing",
+                str(path),
+                f"最適化済みまたは旧互換のルーティングではありません。不足: {', '.join(missing)}",
+            )
+        )
 
     if expect_profile:
         profile_reference = f"profiles/{expect_profile}/AGENTS.md"
-        status = "PASS" if profile_reference in text else "FAIL"
-        message = "参照あり" if status == "PASS" else "期待するプロファイル参照がありません"
-        findings.append(Finding(status, "root-agents-profile", str(path), f"{profile_reference}: {message}"))
+        if expect_profile == "personal":
+            profile_ok = optimized or profile_reference in text
+        elif expect_profile == "generic":
+            profile_ok = optimized and "profiles/personal/" not in text
+        else:
+            profile_ok = profile_reference in text
+        status = "PASS" if profile_ok else "FAIL"
+        message = "プロファイル固有ルートあり" if status == "PASS" else "期待するプロファイルルートがありません"
+        findings.append(Finding(status, "root-agents-profile", str(path), message))
 
     if normalized(str(repo.resolve())) in normalized(text):
         findings.append(Finding("PASS", "root-agents-repo-path", str(path), "実際のrepoパスを参照"))

@@ -10,12 +10,14 @@
 編集前に次を読みます。
 
 1. ルート `AGENTS.md`
-2. `instructions/core/principles.md`
-3. `instructions/core/task-lifecycle.md`
-4. `instructions/core/instruction-authoring.md`
-5. 本文書
-6. Skill変更の場合は `docs/SKILL_MANAGEMENT.md` と対象の `SKILL.md`
-7. 更新対象に関連するプロファイル、アダプター、公式資料、Serenaメモリ
+2. `instructions/core/instruction-authoring.md`
+3. 本文書
+4. Skill変更の場合は `docs/SKILL_MANAGEMENT.md` と対象の `SKILL.md`
+5. 更新対象に関連するプロファイル、アダプター、公式資料、Serenaメモリ
+
+大規模、曖昧、高リスク、横断的な更新では `instructions/core/task-lifecycle.md`、外部根拠の
+精査を含む高リスク更新では `instructions/core/principles.md` も読みます。通常の小規模更新で
+両方を機械的に追加読込しません。ユースケース索引は直接ルートがない場合だけ使います。
 
 ### Gitと作業ツリー
 
@@ -78,6 +80,8 @@
 - `templates/ROOT_AGENTS_GENERIC.md` と個人用ルートテンプレート
 - 関連する `instructions/use-cases/`
 - Serenaの `core`、`conventions`、`task_completion`
+
+常時入口へ詳細手順を戻さず、条件付き読込のまま保ちます。
 
 ### 個人プロファイルを変更した場合
 
