@@ -43,18 +43,26 @@ REQUIRED_PATHS = (
 )
 REQUIRED_TEXT_MARKERS = {
     "AGENTS.md": (
-        "instructions/core/principles.md",
         "instructions/core/task-lifecycle.md",
-        "instructions/use-cases/README.md",
         "instructions/core/instruction-authoring.md",
+        "instructions/use-cases/README.md",
         "docs/MAINTENANCE.md",
         "docs/SKILL_MANAGEMENT.md",
+        "docs/OFFICIAL_GUIDANCE.md",
     ),
     "ROOT_AGENTS_TEMPLATE.md": (
         "instructions/core/principles.md",
         "instructions/core/task-lifecycle.md",
-        "profiles/personal/AGENTS.md",
+        "instructions/core/instruction-authoring.md",
+        "instructions/use-cases/code-change.md",
+        "instructions/use-cases/code-review.md",
+        "instructions/use-cases/research.md",
         "instructions/use-cases/README.md",
+        "profiles/personal/unity-csharp.md",
+        "profiles/personal/web-development.md",
+        "profiles/personal/project-recording.md",
+        "profiles/personal/mcp-and-voicevox.md",
+        "adapters/README.md",
         "docs/MAINTENANCE.md",
         "docs/SKILL_MANAGEMENT.md",
     ),
@@ -65,7 +73,7 @@ REQUIRED_TEXT_MARKERS = {
     ),
     "instructions/core/task-lifecycle.md": (
         "adapters/README.md",
-        "instructions/core/instruction-authoring.md",
+        "instruction-authoring.md",
         "instructions/use-cases/README.md",
     ),
     "instructions/use-cases/README.md": (
@@ -74,20 +82,36 @@ REQUIRED_TEXT_MARKERS = {
         "research.md",
     ),
     "profiles/personal/AGENTS.md": (
-        "communication.md",
         "mcp-and-voicevox.md",
         "project-recording.md",
         "unity-csharp.md",
         "web-development.md",
     ),
+    "profiles/personal/project-recording.md": (
+        "作業中",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "作成・更新",
+    ),
     "skills/maintain-agent-spec/SKILL.md": (
+        "instructions/core/instruction-authoring.md",
+        "instructions/core/task-lifecycle.md",
         "instructions/use-cases/README.md",
         "scripts/validate_repository.py",
+    ),
+    "scripts/setup_environment.py": (
+        "--migrate-root-agents",
+        "pre-token-efficiency.bak",
     ),
     "templates/ROOT_AGENTS_GENERIC.md": (
         "instructions/core/principles.md",
         "instructions/core/task-lifecycle.md",
+        "instructions/core/instruction-authoring.md",
+        "instructions/use-cases/code-change.md",
+        "instructions/use-cases/code-review.md",
+        "instructions/use-cases/research.md",
         "instructions/use-cases/README.md",
+        "adapters/README.md",
         "docs/MAINTENANCE.md",
         "docs/SKILL_MANAGEMENT.md",
     ),
@@ -98,6 +122,12 @@ MACHINE_PATH_PATTERNS = (
     re.compile(r"\b[A-Za-z]:[\\/](?:Users|Develop)[\\/]", re.IGNORECASE),
     re.compile(r"/(?:Users|home)/[^/\s]+/"),
 )
+ROUTER_FILES = (
+    "ROOT_AGENTS_TEMPLATE.md",
+    "templates/ROOT_AGENTS_GENERIC.md",
+    "profiles/personal/AGENTS.md",
+)
+OPERATIONAL_ROOTS = ("instructions", "profiles", "skills", "templates")
 
 
 @dataclass(frozen=True)
@@ -179,6 +209,73 @@ def validate_memory_references(root: Path, markdown: list[tuple[Path, str]]) -> 
     return issues
 
 
+def validate_token_efficiency(texts: dict[str, str]) -> list[Issue]:
+    issues: list[Issue] = []
+    for relative in ROUTER_FILES:
+        text = texts.get(relative, "")
+        if "## 常時読む" in text or "タスク開始時に、次の順" in text:
+            issues.append(
+                Issue("ERROR", "always-read-chain", relative, "常時の多段読込チェーンを検出しました")
+            )
+
+    for relative in ("ROOT_AGENTS_TEMPLATE.md", "templates/ROOT_AGENTS_GENERIC.md"):
+        text = texts.get(relative, "")
+        preamble = text.split("## 条件付きガイド", 1)[0]
+        if "<AGENT_SPEC_REPOSITORY_PATH>/" in preamble:
+            issues.append(
+                Issue("ERROR", "always-read-reference", relative, "条件付き節より前に追加文書参照があります")
+            )
+    if "profiles/personal/AGENTS.md" in texts.get("ROOT_AGENTS_TEMPLATE.md", ""):
+        issues.append(
+            Issue(
+                "ERROR",
+                "personal-router-chain",
+                "ROOT_AGENTS_TEMPLATE.md",
+                "個人用環境ルートから互換用個人ルーターへの多段参照があります",
+            )
+        )
+
+    communication = texts.get("profiles/personal/communication.md", "")
+    if "非公開ルーブリック" in communication or "5〜7" in communication:
+        issues.append(
+            Issue(
+                "ERROR",
+                "per-task-rubric",
+                "profiles/personal/communication.md",
+                "常時ルーブリックを検出しました",
+            )
+        )
+
+    voice = texts.get("profiles/personal/mcp-and-voicevox.md", "")
+    if "全タスク完了時" in voice or "受領:「了解です」" in voice.replace(" ", ""):
+        issues.append(
+            Issue(
+                "ERROR",
+                "always-voice-notification",
+                "profiles/personal/mcp-and-voicevox.md",
+                "常時の多段音声通知を検出しました",
+            )
+        )
+    if "明示" not in voice:
+        issues.append(
+            Issue(
+                "ERROR",
+                "voice-activation-missing",
+                "profiles/personal/mcp-and-voicevox.md",
+                "音声通知の明示的な起動条件がありません",
+            )
+        )
+
+    for relative, text in texts.items():
+        if not relative.startswith(OPERATIONAL_ROOTS):
+            continue
+        if "uLoopMCP" in text:
+            issues.append(
+                Issue("ERROR", "deprecated-unity-tool", relative, "運用文書に旧Unityツール表記があります")
+            )
+    return issues
+
+
 def run_command_check(root: Path, command: list[str], code: str) -> list[Issue]:
     try:
         result = subprocess.run(command, cwd=root, capture_output=True, text=True, check=False)
@@ -198,6 +295,7 @@ def validate_repository(root: Path) -> tuple[list[Issue], int, int]:
 
     files = repository_files(root)
     markdown: list[tuple[Path, str]] = []
+    texts: dict[str, str] = {}
     for path in files:
         text, error = read_utf8(path)
         relative = path.relative_to(root).as_posix()
@@ -205,6 +303,7 @@ def validate_repository(root: Path) -> tuple[list[Issue], int, int]:
             issues.append(Issue("ERROR", "invalid-utf8", relative, error))
             continue
         assert text is not None
+        texts[relative] = text
         issues.extend(validate_text_file(root, path, text))
         for marker in REQUIRED_TEXT_MARKERS.get(relative, ()):
             if marker not in text:
@@ -221,6 +320,7 @@ def validate_repository(root: Path) -> tuple[list[Issue], int, int]:
             issues.extend(validate_markdown_links(root, path, text))
 
     issues.extend(validate_memory_references(root, markdown))
+    issues.extend(validate_token_efficiency(texts))
     skill_validator = root / "scripts" / "validate_skills.py"
     if skill_validator.is_file():
         issues.extend(

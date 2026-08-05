@@ -8,15 +8,17 @@ description: agent-specリポジトリのAGENTS指示、汎用原則、プロフ
 ## 準備する
 
 1. リポジトリルートを特定し、`AGENTS.md`を読む。
-2. `instructions/core/principles.md`、`instructions/core/task-lifecycle.md`、
-   `instructions/core/instruction-authoring.md`、`docs/MAINTENANCE.md`を読む。
+2. `instructions/core/instruction-authoring.md`と`docs/MAINTENANCE.md`を読む。
+   大規模、曖昧、高リスク、横断的な変更では`instructions/core/task-lifecycle.md`、外部根拠の
+   精査を含む高リスク変更では`instructions/core/principles.md`も読む。
 3. Skill作業では`docs/SKILL_MANAGEMENT.md`を読む。対象の`SKILL.md`が存在する場合は
    編集前に読み、新規作成では初期化後に読んでから編集を続ける。
 4. 編集前にブランチ、作業ツリー、リモート、関連する既存ファイルを確認する。
 5. 外部仕様に依存する変更では、`docs/OFFICIAL_GUIDANCE.md`にある公式資料から
    現行の挙動を確認する。
-6. [`instructions/use-cases/README.md`](../../instructions/use-cases/README.md)から
-   依頼に該当する手順を読み、複数の種別を含む場合は必要な文書を組み合わせる。
+6. 直接ルートがない特殊作業だけ、
+   [`instructions/use-cases/README.md`](../../instructions/use-cases/README.md)を
+   フォールバック索引として使う。
 
 ## 変更を分類する
 

@@ -3,20 +3,39 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
 PLACEHOLDER = "<AGENT_SPEC_REPOSITORY_PATH>"
-REQUIRED_REFERENCES = (
+OPTIMIZED_COMMON_REFERENCES = (
     "instructions/core/principles.md",
     "instructions/core/task-lifecycle.md",
+    "instructions/core/instruction-authoring.md",
+    "instructions/use-cases/code-change.md",
+    "instructions/use-cases/code-review.md",
+    "instructions/use-cases/research.md",
     "instructions/use-cases/README.md",
+    "adapters/README.md",
     "docs/MAINTENANCE.md",
     "docs/SKILL_MANAGEMENT.md",
 )
+OPTIMIZED_PERSONAL_REFERENCES = (
+    "profiles/personal/unity-csharp.md",
+    "profiles/personal/web-development.md",
+    "profiles/personal/project-recording.md",
+    "profiles/personal/mcp-and-voicevox.md",
+)
+LEGACY_COMMON_REFERENCES = (
+    "instructions/core/principles.md",
+    "instructions/core/task-lifecycle.md",
+    "docs/MAINTENANCE.md",
+)
+BACKUP_SUFFIX = ".pre-token-efficiency.bak"
 
 
 @dataclass(frozen=True)
@@ -81,16 +100,78 @@ def template_path(repo: Path, profile: str) -> Path:
     return repo / "templates" / "ROOT_AGENTS_GENERIC.md"
 
 
-def root_agents_compatible(text: str, repo: Path, profile: str) -> bool:
+def root_agents_compatibility(text: str, repo: Path, profile: str) -> str | None:
     if PLACEHOLDER in text or normalized(str(repo)) not in normalized(text):
-        return False
-    if any(reference not in text for reference in REQUIRED_REFERENCES):
-        return False
-    return profile != "personal" or "profiles/personal/AGENTS.md" in text
+        return None
+    optimized = OPTIMIZED_COMMON_REFERENCES
+    if profile == "personal":
+        optimized += OPTIMIZED_PERSONAL_REFERENCES
+    optimized_profile_ok = profile == "personal" or "profiles/personal/" not in text
+    if optimized_profile_ok and all(reference in text for reference in optimized):
+        return "optimized"
+    if profile == "personal":
+        legacy_profile_ok = "profiles/personal/AGENTS.md" in text
+    else:
+        legacy_profile_ok = "profiles/personal/" not in text
+    legacy_use_cases = "instructions/use-cases/" in text
+    legacy_chain = "タスク開始時に" in text
+    if (
+        legacy_profile_ok
+        and legacy_use_cases
+        and legacy_chain
+        and all(reference in text for reference in LEGACY_COMMON_REFERENCES)
+    ):
+        return "legacy"
+    return None
+
+
+def next_backup_path(destination: Path) -> Path:
+    base = destination.with_name(destination.name + BACKUP_SUFFIX)
+    if not base.exists():
+        return base
+    for index in range(1, 10_000):
+        candidate = destination.with_name(f"{destination.name}{BACKUP_SUFFIX}.{index}")
+        if not candidate.exists():
+            return candidate
+    raise OSError("利用可能なバックアップ名を確保できません")
+
+
+def migrate_legacy_root_agents(destination: Path, rendered: str) -> Path:
+    backup = next_backup_path(destination)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            newline="\n",
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as output:
+            output.write(rendered)
+            output.flush()
+            os.fsync(output.fileno())
+            temporary = Path(output.name)
+        shutil.copymode(destination, temporary)
+        shutil.copy2(destination, backup)
+        os.replace(temporary, destination)
+    except OSError:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise
+    return backup
 
 
 def prepare_root_agents(
-    repo: Path, destination: Path, profile: str, apply: bool
+    repo: Path,
+    destination: Path,
+    profile: str,
+    apply: bool,
+    migrate_legacy: bool,
 ) -> Result:
     source = template_path(repo, profile)
     if not source.is_file():
@@ -103,6 +184,13 @@ def prepare_root_agents(
         return Result("FAIL", "root-agents", str(source), "repoパスのプレースホルダーがありません")
     rendered = template.replace(PLACEHOLDER, str(repo))
 
+    if destination.is_symlink():
+        return Result(
+            "FAIL",
+            "root-agents",
+            str(destination),
+            "既存ルートAGENTSがシンボリックリンクのため自動移行しません",
+        )
     if destination.exists():
         if not destination.is_file():
             return Result("FAIL", "root-agents", str(destination), "同名パスがファイルではありません")
@@ -110,8 +198,39 @@ def prepare_root_agents(
             existing = destination.read_text(encoding="utf-8-sig")
         except (OSError, UnicodeDecodeError) as error:
             return Result("FAIL", "root-agents", str(destination), f"既存ファイルを読めません: {error}")
-        if existing == rendered or root_agents_compatible(existing, repo, profile):
-            return Result("PASS", "root-agents", str(destination), "互換性のある既存ファイルを保持します")
+        compatibility = root_agents_compatibility(existing, repo, profile)
+        if existing == rendered or compatibility == "optimized":
+            return Result("PASS", "root-agents", str(destination), "最適化済みの既存ファイルを保持します")
+        if compatibility == "legacy":
+            if migrate_legacy and not apply:
+                return Result(
+                    "PLAN",
+                    "root-agents",
+                    str(destination),
+                    f"旧ルーターを{destination.name + BACKUP_SUFFIX}系の名前へバックアップして最適化版へ移行予定です",
+                )
+            if migrate_legacy:
+                try:
+                    backup = migrate_legacy_root_agents(destination, rendered)
+                except OSError as error:
+                    return Result(
+                        "FAIL",
+                        "root-agents",
+                        str(destination),
+                        f"旧ルーターの移行に失敗しました: {error}",
+                    )
+                return Result(
+                    "PASS",
+                    "root-agents",
+                    str(destination),
+                    f"旧ルーターを最適化版へ移行しました。バックアップ: {backup}",
+                )
+            return Result(
+                "PASS",
+                "root-agents",
+                str(destination),
+                "旧ルーターとの読取互換性があるため保持します。トークン効率化には新テンプレートを手動統合してください",
+            )
         return Result(
             "FAIL",
             "root-agents",
@@ -188,8 +307,7 @@ def verify_setup(repo: Path, root_agents: Path, skills_target: Path, profile: st
         "--require-skills",
         "--json",
     ]
-    if profile == "personal":
-        command.extend(("--expect-profile", "personal"))
+    command.extend(("--expect-profile", profile))
     code, payload, detail = run_json(command, repo)
     if code != 0 or not isinstance(payload, dict):
         return Result("FAIL", "verification", str(repo), f"セットアップ検証に失敗しました: {detail}")
@@ -215,12 +333,17 @@ def main() -> int:
         "--skills-target", type=Path, default=Path.home() / ".agents" / "skills"
     )
     parser.add_argument("--skill-mode", choices=("auto", "symlink", "copy"), default="auto")
+    parser.add_argument(
+        "--migrate-root-agents",
+        action="store_true",
+        help="読取互換の旧ルートAGENTSをバックアップして最適化版へ移行する",
+    )
     parser.add_argument("--apply", action="store_true", help="実際に変更する。省略時はdry-run")
     parser.add_argument("--json", action="store_true", help="JSONで出力する")
     args = parser.parse_args()
 
     repo = args.repo.expanduser().resolve()
-    root_agents = args.root_agents.expanduser().resolve()
+    root_agents = args.root_agents.expanduser().absolute()
     skills_target = args.skills_target.expanduser().resolve()
     skill_mode = args.skill_mode
     if skill_mode == "auto":
@@ -228,7 +351,15 @@ def main() -> int:
 
     results = [validate_repository(repo)]
     if not any(item.status == "FAIL" for item in results):
-        results.append(prepare_root_agents(repo, root_agents, args.profile, args.apply))
+        results.append(
+            prepare_root_agents(
+                repo,
+                root_agents,
+                args.profile,
+                args.apply,
+                args.migrate_root_agents,
+            )
+        )
     if not any(item.status == "FAIL" for item in results):
         results.extend(install_skills(repo, skills_target, skill_mode, args.apply))
     if args.apply and not any(item.status == "FAIL" for item in results):
@@ -244,6 +375,7 @@ def main() -> int:
         "root_agents": str(root_agents),
         "skills_target": str(skills_target),
         "skill_mode": skill_mode,
+        "migrate_root_agents": args.migrate_root_agents,
         "apply": args.apply,
         "counts": counts,
         "results": [asdict(item) for item in results],
