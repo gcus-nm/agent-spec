@@ -1,0 +1,14 @@
+{
+  "repo": "<TARGET_REPOSITORY>",
+  "remote": "origin",
+  "remote_url": "<EXPECTED_REMOTE_URL_WITHOUT_CREDENTIALS>",
+  "branch": "main",
+  "context": "<EXPLICIT_DOCKER_CONTEXT>",
+  "project": "example",
+  "compose": ["compose.yaml"],
+  "env_file": "<PRIVATE_ENV_FILE>",
+  "services": ["app"],
+  "source_paths": ["src", "Dockerfile", "package.json", "package-lock.json"],
+  "code_reviewed_no_migrations": false,
+  "rollback_allowed": false
+}

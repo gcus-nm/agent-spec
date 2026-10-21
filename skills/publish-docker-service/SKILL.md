@@ -1,6 +1,6 @@
 ---
 name: publish-docker-service
-description: 既存のDocker Compose WebサービスをOCI Relay Control経由で安全に公開、更新、停止する。FQDN、固定Dockerネットワークエイリアス、コンテナポートを使ったWebルートの追加、`onprem-relay-ingress`への接続、公開Origin・認証・秘密値・DNS・TLS・ヘルスチェックの検証を依頼されたときに使用する。生のTCP/UDPゲーム経路、Dockerを使わないサービス、一般的なクラウドデプロイだけの依頼には使用しない。
+description: 既存のDocker Compose WebサービスをOCI Relay Control経由で安全に公開、停止する。FQDN、固定Dockerネットワークエイリアス、コンテナポートを使ったWebルートの追加、`onprem-relay-ingress`への接続、公開Origin・認証・秘密値・DNS・TLS・ヘルスチェックの検証を依頼されたときに使用する。生のTCP/UDPゲーム経路、Dockerを使わないサービス、一般的なクラウドデプロイだけの依頼には使用しない。
 ---
 
 # Dockerサービスを公開する
@@ -80,7 +80,10 @@ networks:
 プロジェクト指示のテスト、リント、ビルドを実行してから、次を確認する。
 
 1. `docker compose config --quiet`が成功する。
-2. `docker compose up -d --build`が成功する。
+2. 対象サービス名と依存関係への影響を確認し、承認した対象だけをbuildして、
+   `docker compose up -d --no-deps --no-build --pull never <SERVICE...>`で起動する。
+   既存構成を変えないコード更新は[限定更新Skill](../update-compose-services/SKILL.md)へ分離する。
+   ネットワーク・公開設定の変更は本Skillで差分と影響範囲を確認する。
 3. 対象コンテナがhealthyまたは安定してrunningになる。
 4. `docker inspect`で固定エイリアスが`onprem-relay-ingress`に存在する。
 5. 共有ネットワーク内から`http://<alias>:<port>`へ到達できる。
