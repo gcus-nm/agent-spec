@@ -2,6 +2,10 @@
 
 ## 2026-10-21
 
+- `update-compose-services`の診断を、実env内容・展開済秘密値・コンテナ環境変数を取得しない方式へ
+  変更しました。固定SHA、既存のread_only/tmpfsと対象外bind mount・停止状態を保持し、
+  ファイルメタデータによる変化検出の限界を明示しました。
+- rebase中の判定を実際の管理ディレクトリで行い、残留した`REBASE_HEAD`を変更せずに扱うようにしました。
 - 既存Compose構成を変えないコード更新用に、確認・承認・限定適用・旧image復旧の
   `update-compose-services` SkillとWindows/Linux共通のPython標準ライブラリ製ヘルパーを
   追加しました。非待機OSロック、UTF-8/BOM、ホストパスの差異を吸収します。

@@ -3,6 +3,7 @@
   "remote": "origin",
   "remote_url": "<EXPECTED_REMOTE_URL_WITHOUT_CREDENTIALS>",
   "branch": "main",
+  "target_sha": "<APPROVED_40_HEX_COMMIT_SHA>",
   "context": "<EXPLICIT_DOCKER_CONTEXT>",
   "project": "example",
   "compose": ["compose.yaml"],

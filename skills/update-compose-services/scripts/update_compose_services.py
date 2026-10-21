@@ -56,12 +56,46 @@ def relative_source(value):
     return value
 
 
+def file_metadata(path):
+    """Detect ordinary edits/replacements without opening confidential files."""
+    info = path.lstat()
+    require(stat.S_ISREG(info.st_mode) and not path.is_symlink()
+            and not (getattr(info, 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0)),
+            'env must be a regular non-symlink file')
+    return {k: getattr(info, k) for k in ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns')}
+
+
+def image_key(tag):
+    # Docker Hub's implicit registry/library and latest are the same local tag.
+    require(isinstance(tag, str) and tag and '$' not in tag, 'literal image tag required')
+    first = tag.split('/', 1)[0]
+    if '/' not in tag or not ('.' in first or ':' in first or first == 'localhost'):
+        tag = 'docker.io/' + tag
+    if tag.startswith('index.docker.io/'):
+        tag = 'docker.io/' + tag[len('index.docker.io/'):]
+    if tag.startswith('docker.io/') and '/' not in tag[len('docker.io/'):]:
+        tag = 'docker.io/library/' + tag[len('docker.io/'):]
+    return tag if '@' in tag or ':' in tag.rsplit('/', 1)[-1] else tag + ':latest'
+
+
+def target_volume_safe(volume):
+    if isinstance(volume, dict):
+        return volume.get('type') == 'volume' and bool(volume.get('source'))
+    # Unnormalized short syntax: allow named volumes only. Unknown/variable or
+    # host-path sources fail closed, including Windows drive/UNC paths.
+    if isinstance(volume, str) and ':' in volume:
+        source = volume.split(':', 1)[0]
+        return bool(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', source)) and not re.match(r'^[A-Za-z]:[/\\]', volume)
+    return False
+
+
 class Deployment:
     def __init__(self, config):
         self.c = config
         require(set(config) == {'repo', 'remote', 'remote_url', 'branch', 'context', 'project',
                                'compose', 'env_file', 'services', 'source_paths',
-                               'code_reviewed_no_migrations', 'rollback_allowed'}, 'invalid configuration keys')
+                               'code_reviewed_no_migrations', 'rollback_allowed', 'target_sha'}, 'invalid configuration keys')
+        require(isinstance(config['target_sha'], str) and re.fullmatch(r'[0-9a-f]{40}', config['target_sha']), 'exact target SHA required')
         for key in ('remote', 'branch', 'context', 'project'):
             require(isinstance(config[key], str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', config[key]), 'invalid identifier')
         require(not re.search(r'://[^/]*@', config['remote_url']), 'credential-bearing remote unsupported')
@@ -74,7 +108,8 @@ class Deployment:
         for p in config['compose'] + config['source_paths']:
             relative_source(p)
         require(config['compose'], 'compose files required')
-        self.env = Path(config['env_file']).resolve(strict=True)
+        self.env = Path(config['env_file']).absolute()
+        file_metadata(self.env)
 
     def git(self, *args):
         # A real empty directory works with native Git on both Windows and Linux.
@@ -85,8 +120,18 @@ class Deployment:
     def docker(self, *args):
         return run(['docker', '--context', self.c['context'], *args], self.repo)
 
-    def compose(self, *args):
-        argv = ['compose', '--project-name', self.c['project'], '--project-directory', str(self.repo), '--env-file', str(self.env)]
+    def compose(self, *args, diagnostic=False):
+        if diagnostic:
+            # Explicit empty interpolation file prevents Compose loading the real .env.
+            # Service env_file content is disabled by --no-env-resolution at the caller.
+            with tempfile.TemporaryDirectory(prefix='compose-update-no-env-') as folder:
+                empty = Path(folder) / 'empty.env'
+                empty.touch()
+                return self._compose(empty, *args)
+        return self._compose(self.env, *args)
+
+    def _compose(self, env, *args):
+        argv = ['compose', '--project-name', self.c['project'], '--project-directory', str(self.repo), '--env-file', str(env)]
         for p in self.c['compose']:
             argv += ['-f', str(self.repo / p)]
         return self.docker(*argv, *args)
@@ -95,7 +140,9 @@ class Deployment:
         require(path_key(self.git('rev-parse', '--show-toplevel')) == path_key(str(self.repo)), 'not repository root')
         require(self.git('branch', '--show-current') == self.c['branch'], 'unexpected branch')
         require(not self.git('status', '--porcelain', '--untracked-files=all'), 'dirty/untracked worktree')
-        for name in ('MERGE_HEAD', 'REBASE_HEAD', 'CHERRY_PICK_HEAD', 'rebase-merge', 'rebase-apply', 'sequencer'):
+        # REBASE_HEAD may remain after a completed rebase; it is not an active
+        # operation marker. Git-resolved rebase state directories are decisive.
+        for name in ('MERGE_HEAD', 'CHERRY_PICK_HEAD', 'rebase-merge', 'rebase-apply', 'sequencer'):
             p = Path(self.git('rev-parse', '--git-path', name))
             require(not (self.repo / p).exists(), 'git operation in progress')
         require(self.git('remote', 'get-url', self.c['remote']) == self.c['remote_url'], 'remote mismatch')
@@ -106,54 +153,89 @@ class Deployment:
         for p in self.c['compose']:
             text = (self.repo / p).read_text(encoding='utf-8-sig')
             require(not re.search(r'^\s*(include|profiles|extends|develop|provider)\s*:', text, re.M), 'special compose unsupported')
-        model = json.loads(self.compose('config', '--format', 'json'))
+        model = json.loads(self.compose('config', '--no-interpolate', '--no-env-resolution', '--no-normalize', '--no-path-resolution', '--format', 'json', diagnostic=True))
         services = model.get('services', {})
         require(set(self.c['services']) <= services.keys(), 'service mismatch')
         tags = []
         allowed = {'build', 'image', 'command', 'entrypoint', 'environment', 'env_file', 'ports',
                    'expose', 'networks', 'volumes', 'depends_on', 'healthcheck', 'restart', 'labels',
-                   'container_name', 'working_dir', 'user', 'init', 'stop_grace_period', 'logging'}
+                   'container_name', 'working_dir', 'user', 'init', 'stop_grace_period', 'logging', 'read_only', 'tmpfs'}
         for name, service in services.items():
             require(not (set(service) - allowed), 'unsupported service settings')
-            require(all(v.get('type') != 'bind' for v in service.get('volumes', [])), 'bind mounts unsupported')
             if name in self.c['services']:
-                require(service.get('build') and service.get('image'), 'explicit build/image required')
+                require(all(target_volume_safe(v) for v in service.get('volumes', [])), 'target bind/anonymous mounts unsupported')
+                require(service.get('build'), 'local build required')
                 build = service['build']
                 require(isinstance(build, dict) and set(build) <= {'context', 'dockerfile', 'args', 'target'}, 'special build unsupported')
-                require(path_key(build['context']) == path_key(str(self.repo)), 'build context must be repo root')
-                dockerfile = self.repo / relative_source(build.get('dockerfile', 'Dockerfile'))
+                context = build['context']
+                require(isinstance(context, str) and '$' not in context, 'variable build context unsupported')
+                require(path_key(str((self.repo / context).resolve(strict=True))) == path_key(str(self.repo)), 'build context must be repo root')
+                dockerfile_path = relative_source(build.get('dockerfile', 'Dockerfile'))
+                require('$' not in dockerfile_path, 'variable Dockerfile unsupported')
+                dockerfile = self.repo / dockerfile_path
                 require(dockerfile.resolve(strict=True).is_relative_to(self.repo) and dockerfile.is_file()
                         and not dockerfile.is_symlink(), 'Dockerfile must be a regular file inside repo')
-            require(service.get('image'), 'all services require explicit image tags')
-            tags.append(service['image'])
+            # Compose's established default name for a build-only service. Verify against
+            # the running container before building; do not change the Compose model.
+            image = service.get('image') or self.c['project'] + '-' + name
+            require(isinstance(image, str) and '$' not in image, 'variable image tags unsupported')
+            tags.append(image_key(image))
         require(len(tags) == len(set(tags)), 'shared image tags unsupported')
         return model
+
+    def env_metadata(self, model):
+        paths = {self.env}
+        for service in model['services'].values():
+            for entry in service.get('env_file', []):
+                value = entry['path'] if isinstance(entry, dict) else entry
+                require(isinstance(value, str) and '$' not in value, 'variable env path unsupported')
+                path = Path(value)
+                paths.add(path if path.is_absolute() else self.repo / path)
+        return {str(p): file_metadata(p) for p in sorted(paths, key=str)}
+
+    def image_tags(self, model, before):
+        tags = {}
+        for name in self.c['services']:
+            tag = model['services'][name].get('image') or self.c['project'] + '-' + name
+            require(image_key(before[name]['image_tag']) == image_key(tag), 'running image tag differs from compose')
+            tags[name] = before[name]['image_tag']
+        canonical = {image_key(tag) for tag in tags.values()}
+        require(len(canonical) == len(tags), 'shared image tags unsupported')
+        for name, row in before.items():
+            if name not in tags:
+                require(image_key(row['image_tag']) not in canonical, 'target image tag used by non-target')
+        return tags
 
     def containers(self):
         ids = self.docker('ps', '-aq', '--filter', 'label=com.docker.compose.project=' + self.c['project']).split()
         require(ids, 'no existing containers')
-        rows = json.loads(self.docker('inspect', *ids))
+        # Never retrieve Config.Env, healthcheck output, commands, or arbitrary labels.
+        fields = {'id': '.Id', 'image': '.Image', 'image_tag': '.Config.Image',
+                  'status': '.State.Status', 'restarts': '.RestartCount',
+                  'readonly': '.HostConfig.ReadonlyRootfs', 'tmpfs': '(index .HostConfig "Tmpfs")',
+                  'mounts': '.Mounts', 'ports': '(index .HostConfig "PortBindings")',
+                  'network_mode': '.HostConfig.NetworkMode'}
+        template = '{' + ','.join(json.dumps(k) + ':{{json ' + v + '}}' for k, v in fields.items())
+        for key in ('service', 'config-hash', 'project.working_dir', 'project.config_files', 'oneoff'):
+            template += ',' + json.dumps(key) + ':{{json (index .Config.Labels "com.docker.compose.' + key + '")}}'
+        template += ',"health":{{with (index .State "Health")}}{{json .Status}}{{else}}"none"{{end}}}'
+        rows = [json.loads(line) for line in self.docker('inspect', '--type', 'container', '--format', template, *ids).splitlines()]
         result = {}
         for row in rows:
-            labels = row['Config']['Labels']
-            require(labels.get('com.docker.compose.oneoff', 'False').lower() == 'false', 'oneoff unsupported')
-            require(path_key(labels.get('com.docker.compose.project.working_dir', '')) == path_key(str(self.repo)), 'project repository mismatch')
-            files = labels.get('com.docker.compose.project.config_files', '').split(',')
+            require((row.get('oneoff') or 'False').lower() == 'false', 'oneoff unsupported')
+            require(path_key(row.get('project.working_dir') or '') == path_key(str(self.repo)), 'project repository mismatch')
+            files = (row.get('project.config_files') or '').split(',')
             require({path_key(p) for p in files} == {path_key(str(self.repo / p)) for p in self.c['compose']}, 'project compose mismatch')
-            name = labels['com.docker.compose.service']
+            name = row['service']
             require(name not in result, 'scaled/duplicate service unsupported')
-            state = row['State']
-            result[name] = {'id': row['Id'], 'image': row['Image'], 'status': state['Status'],
-                            'health': state.get('Health', {}).get('Status', 'none'),
-                            'restarts': row.get('RestartCount', 0),
-                            'config_hash': labels.get('com.docker.compose.config-hash'),
-                            'configuration': digest({k: row.get(k) for k in ('Config', 'HostConfig', 'Mounts', 'NetworkSettings')})}
+            result[name] = row
         return result
 
     def inspect(self):
         self.clean()
         head = self.git('rev-parse', 'HEAD')
         target = self.git('rev-parse', '--verify', 'refs/remotes/' + self.c['remote'] + '/' + self.c['branch'] + '^{commit}')
+        require(target == self.c['target_sha'], 'remote differs from pinned target SHA')
         self.git('merge-base', '--is-ancestor', head, target)
         tree = self.git('ls-tree', '-r', target)
         require(not any(line.startswith(('120000 ', '160000 ')) for line in tree.splitlines()), 'target symlink/submodule unsupported')
@@ -166,12 +248,10 @@ class Deployment:
         model = self.model()
         before = self.containers()
         require(set(before) == set(model['services']), 'running project does not match compose')
-        hashes = dict(line.split() for line in self.compose('config', '--hash', '*').splitlines())
-        require(set(hashes) == set(before), 'compose hash service mismatch')
-        require(all(v['config_hash'] == hashes[n] for n, v in before.items()), 'running configuration differs from compose')
-        require(all(v['status'] == 'running' and v['health'] in ('none', 'healthy') for v in before.values()), 'baseline unhealthy')
-        return {'version': 1, 'config': self.c, 'head': head, 'target': target,
-                'model_hash': digest(model), 'env_hash': hashlib.sha256(self.env.read_bytes()).hexdigest(),
+        require(all(before[n]['status'] == 'running' and before[n]['health'] in ('none', 'healthy') for n in self.c['services']), 'target baseline unhealthy')
+        tags = self.image_tags(model, before)
+        return {'version': 2, 'config': self.c, 'head': head, 'target': target,
+                'model_hash': digest(model), 'env_metadata': self.env_metadata(model), 'image_tags': tags,
                 'before': before, 'changed_paths': paths}
 
     def verify_state(self, plan, old=False):
@@ -182,6 +262,9 @@ class Deployment:
                 require(now[name] == baseline, 'non-target changed')
             else:
                 require(now[name]['status'] == 'running' and now[name]['health'] in ('healthy', 'none'), 'target unhealthy')
+                require(all(now[name].get(k) == baseline.get(k) for k in
+                            ('config-hash', 'image_tag', 'readonly', 'tmpfs', 'mounts', 'ports', 'network_mode')),
+                        'target runtime configuration changed')
                 if old:
                     require(now[name]['image'] == baseline['image'], 'rollback image mismatch')
         return now
@@ -207,13 +290,13 @@ class Deployment:
         require(self.containers() == plan['before'], 'containers changed before build')
         self.compose('build', *self.c['services'])
         model = self.model()
-        expected = {name: self.docker('image', 'inspect', '--format', '{{.Id}}', model['services'][name]['image']) for name in self.c['services']}
+        expected = {name: self.docker('image', 'inspect', '--format', '{{.Id}}', plan['image_tags'][name]) for name in self.c['services']}
         require(self.containers() == plan['before'], 'containers changed during build')
         require(digest(self.model()) == plan['model_hash'], 'configuration changed during build')
         self.clean()
         require(self.c == plan['config'], 'config changed during build')
         require(self.git('rev-parse', 'HEAD') == plan['target'], 'HEAD changed during build')
-        require(hashlib.sha256(self.env.read_bytes()).hexdigest() == plan['env_hash'], 'env changed during build')
+        require(self.env_metadata(model) == plan['env_metadata'], 'env metadata changed during build')
         saved['built'] = expected
         saved['phase'] = 'built'
         write_private(state, saved, replace=True)
@@ -232,7 +315,7 @@ class Deployment:
         self.clean()
         require(self.git('rev-parse', 'HEAD') == plan['target'], 'rollback HEAD mismatch')
         require(digest(self.model()) == plan['model_hash'], 'rollback configuration changed')
-        require(hashlib.sha256(self.env.read_bytes()).hexdigest() == plan['env_hash'], 'rollback env changed')
+        require(self.env_metadata(self.model()) == plan['env_metadata'], 'rollback env metadata changed')
         now = self.containers()
         require(set(now) == set(plan['before']), 'container set changed')
         for name, baseline in plan['before'].items():
@@ -246,7 +329,7 @@ class Deployment:
             if saved.get('phase') == 'complete':
                 require(now[name] == saved['after'][name], 'target changed after apply')
         for name in self.c['services']:
-            self.docker('image', 'tag', plan['before'][name]['image'], model['services'][name]['image'])
+            self.docker('image', 'tag', plan['before'][name]['image'], plan['image_tags'][name])
         self.recreate()
         self.verify_state(plan, old=True)
 
