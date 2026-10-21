@@ -110,6 +110,16 @@ Codexサンドボックスからシステム資格情報ストアへアクセス
 
 ## Docker Compose
 
+限定更新のCLI仕様は2026-10-21に次の一次資料で確認しました。
+
+- [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/)
+  - 対象名と`--no-deps --no-build --pull never`を指定し、buildとrecreateを分ける。
+  - `--wait`の結果に加え、対象外コンテナの不変と対象のimage・healthを確認する。
+- [Compose config](https://docs.docker.com/reference/cli/docker/compose/config/)
+  - JSONモデルを内部で比較し、展開済設定や秘密値を出力しない。
+- [Git merge](https://git-scm.com/docs/git-merge)
+  - 承認したSHAを`--ff-only`で指定し、apply時の再fetchで別commitを混入させない。
+
 - [Networking in Compose](https://docs.docker.com/compose/how-tos/networking/)
   - 別Composeプロジェクトと共有する既存ネットワークは`external: true`と`name`で参照する。
   - 公開対象サービスは共有ネットワークとプロジェクト固有の`default`ネットワークを
@@ -119,6 +129,15 @@ Codexサンドボックスからシステム資格情報ストアへアクセス
 - [Docker Compose application model](https://docs.docker.com/compose/intro/compose-application-model/)
   - `docker compose up`でサービスを起動し、`docker compose ps`で稼働状態を確認する。
   - 変数展開を含む構成は`docker compose config`で検証する。
+
+Windows/Linux共通ヘルパーの標準ライブラリ仕様も2026-10-21に確認しました。
+
+- [Python msvcrt](https://docs.python.org/3/library/msvcrt.html)
+  - byte 0から1 byteを非待機でロックし、同じ領域を解放する。空ファイルでも取得できる。
+- [Python pathlib](https://docs.python.org/3/library/pathlib.html)
+  - Windowsのdrive/UNCとPOSIXの絶対パスを区別して比較する。
+- [Python subprocess](https://docs.python.org/3/library/subprocess.html)
+  - argv配列、shell=False、明示UTF-8で呼び出し、コマンド文字列を組み立てない。
 
 ## Traefik
 

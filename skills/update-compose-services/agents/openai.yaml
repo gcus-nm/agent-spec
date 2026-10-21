@@ -1,0 +1,4 @@
+interface:
+  display_name: "Composeサービスを限定更新"
+  short_description: "既存Compose構成を維持して承認SHAのコードだけを指定サービスへ安全に更新"
+  default_prompt: "$update-compose-servicesを使って、既存Composeサービスの限定更新計画を確認し、承認後に適用してください。"
