@@ -42,7 +42,7 @@ class UpdateTests(unittest.TestCase):
         self.env.write_text('SECRET=do-not-print-this\n')
         self.config = dict(repo=str(self.repo), remote='origin', remote_url=str(self.root / 'remote'), branch='main',
                            context='test', project='test', compose=['compose.yaml'], env_file=str(self.env),
-                           services=['app'], source_paths=['src'], code_reviewed_no_migrations=True, rollback_allowed=True)
+                           services=['app'], source_paths=['src'], code_reviewed_no_migrations=True, rollback_allowed=True, target_sha=self.target)
         self.model = {'services': {'app': {'image': 'app:local', 'build': {'context': str(self.repo)}},
                                    'db': {'image': 'db:local'}}}
         self.rows = {n: {'Id': n + '-old', 'Image': 'sha256:' + n + '-old', 'Config': {'Labels': {
@@ -60,7 +60,11 @@ s=json.loads((root/'docker-state').read_text())
 a=sys.argv[3:]
 with (root/'commands').open('a') as f: f.write(json.dumps(a)+'\\n')
 if a[:2]==['ps','-aq']: print('app db')
-elif a[0]=='inspect': print(json.dumps(list(s['rows'].values())))
+elif a[0]=='inspect':
+ assert '--format' in a and '.Config.Env' not in a[a.index('--format')+1]
+ for n,r in s['rows'].items():
+  l=r['Config']['Labels']
+  print(json.dumps(dict(id=r['Id'],image=r['Image'],image_tag=n+':local',status=r['State']['Status'],health=r['State'].get('Health',{}).get('Status','none'),restarts=r['RestartCount'],**{k:l.get('com.docker.compose.'+k) for k in ('service','config-hash','project.working_dir','project.config_files','oneoff')})))
 elif a[:2]==['image','inspect']: print('sha256:app-new')
 elif a[:2]==['image','tag']:
  if a[-1]=='app:local':
@@ -226,10 +230,11 @@ else: sys.exit(9)
         self.git('checkout', 'main')
         with self.assertRaises(u.Stop): self.d.inspect()
 
-    def test_running_configuration_mismatch(self):
-        self.rows['app']['Config']['Labels']['com.docker.compose.config-hash'] = 'outdated'
+    def test_running_configuration_changed_after_plan(self):
+        plan = self.d.inspect()
+        self.rows['app']['Config']['Labels']['com.docker.compose.config-hash'] = 'changed'
         self.save()
-        with self.assertRaises(u.Stop): self.d.inspect()
+        with self.assertRaises(u.Stop): self.apply(plan)
 
     def test_external_dockerfile_rejected(self):
         for value in ('../outside/Dockerfile', '/outside/Dockerfile', 'C:/outside/Dockerfile'):
@@ -334,7 +339,7 @@ class WindowsCompatibilityTests(unittest.TestCase):
     def test_constructor_rejects_drive_relative_before_filesystem_access(self):
         config = dict(repo='C:relative', remote='origin', remote_url='https://example.invalid/repo', branch='main',
                       context='local', project='app', compose=['compose.yaml'], env_file='C:/private/env',
-                      services=['app'], source_paths=['src'], code_reviewed_no_migrations=True, rollback_allowed=False)
+                      services=['app'], source_paths=['src'], code_reviewed_no_migrations=True, rollback_allowed=False, target_sha='a'*40)
         original_key = u.path_key
         with patch.object(u, 'path_key', side_effect=lambda p: original_key(p, windows=True)):
             with patch.object(u, 'Path') as paths:

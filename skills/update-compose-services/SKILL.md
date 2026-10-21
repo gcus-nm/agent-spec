@@ -10,11 +10,12 @@ description: 既存Compose構成を変えず、承認したGit SHAのコード�
 Git管理外の専用ディレクトリへコピーする。Windows PowerShellまたはLinux上のPython 3.10以上、Git、Docker Compose v2を
 使う。実サービスをテスト台にしない。
 
-1. repo、remote URL、branch、Docker context、project、Compose、env参照、サービスallowlistを
+1. repo、remote URL、branch、固定するtarget_sha、Docker context、project、Compose、env参照、サービスallowlistを
    明示する。source_pathsはレビュー済みコードだけへ絞る。DB migration、データ形式変更、
    起動時副作用をコードレビューし、問題がなければcode_reviewed_no_migrationsをtrueにする。
 2. `inspect`で既存remote refsから読み取り検査する。refsが古い場合だけ、fetchの影響を説明し
-   明示承認を受けて別段階の`fetch`を実行する。inspectはfetchしない。
+   明示承認を受けて別段階の`fetch`を実行する。inspectはfetchせず、remote branchがtarget_shaと
+   一致しなければ停止する。対象外の停止済みコンテナも基準状態として記録し、起動しない。
 3. 計画ファイルを作り、SHA、全設定、変更ファイル、対象と対象外、停止時間、旧image復旧範囲を
    人が確認できるよう秘密値を伏せて提示する。表示されたapprovalハッシュを計画全体への承認に使う。
 4. 承認後に同じconfig・planと、新規stateパス、approvalを指定してapplyする。applyは再検査し、
@@ -36,7 +37,10 @@ python <SKILL_DIRECTORY>/scripts/update_compose_services.py rollback --config <P
 ```
 
 inspectの標準出力はSHA、対象名、変更数、承認ハッシュのみ。成功は0、停止は1。
-展開済Compose、実env、inspect全体、外部コマンドの出力を表示しない。
+診断は実envの内容、展開済秘密値、コンテナ環境変数を取得しない。Compose構造、非秘密の
+コンテナ項目、env参照先のファイルメタデータで変化を検査する。これは秘密値の同一性検証ではない。
+計画から適用・復旧の終了まで、他ツールによるenv・シェル環境・対象projectの変更を止める。
+build/upだけは既存env参照を通常どおりComposeへ渡す。外部コマンドの出力を表示しない。
 計画・状態には端末パスとimage IDがあるため、Git管理外の私有ファイルとして保持する。Linuxは権限0600、Windowsは利用者だけがアクセスできる
 NTFS ACLを持つディレクトリを事前に用意する（0600をWindows ACLの代替としない）。
 
